@@ -20,6 +20,7 @@ class BlobEx : Example
 		float4 outerColor;
 		float innerRadius;
 		float outerRadius;
+		float padding0, padding1;
 	}
 
 	this() 
@@ -52,25 +53,6 @@ class BlobEx : Example
 		gl.bufferUniform[1] = bufferedUniform;
 
 		bufferedUniform.bindBlock(program.block("BlobSettings"));
-
-
-	//	uint buffer;
-	//	glGenBuffers(1, &buffer);
-	//	glBindBuffer(GL_UNIFORM_BUFFER, buffer);
-		
-	// int loc = block.uniforms["innerColor"].offset / 4;
-	//	auto data = new float[block.size / 4];
-	//	data[loc .. loc + 4] = [0f, 1f, 0f, 1f];
-	//	loc = block.uniforms["outerColor"].offset / 4;
-	//	data[loc .. loc + 4] = [0f, 0f, 1f, 1f];
-	//	loc = block.uniforms["innerRadius"].offset / 4;
-	//	data[loc] = 0.15f;
-	//	loc = block.uniforms["outerRadius"].offset / 4;
-	//	data[loc] = 0.85f;
-
-	//	glBufferData(GL_UNIFORM_BUFFER, block.size, cast(void*)data.ptr, GL_DYNAMIC_DRAW);
-
-	//	glBindBufferBase(GL_UNIFORM_BUFFER, block.index, buffer);
 	}
 
 
@@ -107,6 +89,7 @@ vec4 innerColor;
 vec4 outerColor;
 float innerRadius;
 float outerRadius;
+float pad0, pad1;
 };
 
 in vec2 vertCoord;

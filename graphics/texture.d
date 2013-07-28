@@ -452,9 +452,3 @@ void compressedSubTexImage(uint target, uint mipLevel, InternalFormat internalFo
 {
 	glCompressedTexSubImage3D(target, mipLevel, x, y, z, width, height, depth, internalFormat, imageSize, data.ptr);
 }
-
-void copyTexImage2D(uint target, uint level, InternalFormat internalFormat, 
-						  uint x, uint y, uint width, uint height)
-{	
-
-}

@@ -49,7 +49,25 @@ align(1) {
 		ubyte dosEndOfFile;
 		ubyte unixLineEnd;
 	}
+	
+	struct PngChunk
+	{
+		uint size;
+		ubyte[4] chunkType;
+	}
+
+	struct IMDR 
+	{
+		uint width;
+		uint height;
+		ubyte bitDepth;
+		ubyte colorType;
+		ubyte compressionType;
+		ubyte fileterType;
+		ubyte interlaceType;
+	}
 }
+
 
 
 struct LoadPng 
