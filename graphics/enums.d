@@ -288,7 +288,7 @@ enum ProgramProperty : uint
 		geometryOutputType = GL_GEOMETRY_OUTPUT_TYPE
 }
 
-enum TransformFeedbackBufferMode 
+enum FeedbackMode 
 {
 	separateAttribs = GL_SEPARATE_ATTRIBS,
 	interleavedAttribs = GL_INTERLEAVED_ATTRIBS

@@ -9,23 +9,18 @@ final class Query
 {
 	package uint glName;
 
-	this(uint glName) 
+	this() 
 	{
-		this.glName = glName;
-	}
-
-	static Query create() 		
-		out { assertNoGLError(); }
-	body
-	{
-		uint glName;
 		glGenQueries(1, &glName);
-		auto query = new Query(glName);
-		return query;
 	}
 
+	bool deleted() @property
+	{
+		return glIsQuery(glName) == GL_FALSE;
+	}
 
 	void destroy()
+		in { assertNotDeleted(this); }
 		out { assertNoGLError(); }
 	body
 	{

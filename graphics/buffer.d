@@ -20,18 +20,14 @@ class Buffer
 		return this._size;
 	}
 
-	this(uint glName, BufferHint hint) 
-	{
-		this.glName = glName;
-		this.hint = hint;
-		this._size = 0;
-	}
-
-	package static uint createBuffer() 
+	this(BufferHint hint) 
 	{
 		uint glName;
 		glGenBuffers(1, &glName);
-		return glName;
+
+		this.glName = glName;
+		this.hint = hint;
+		this._size = 0;
 	}
 
 	abstract BufferTarget target() @property;
@@ -145,15 +141,9 @@ mixin template BufferData(BufferTarget bufferTarget, BufferType,  bool canBeStru
 {
 	override BufferTarget target() @property { return bufferTarget; }
 	
-	private this(uint glName, BufferHint hint) 
+	this(BufferHint hint) 
 	{
-		super(glName, hint);
-	}
-
-	static BufferType create(BufferHint hint)
-	{
-		auto buffer = new BufferType(Buffer.createBuffer(), hint);
-		return buffer;
+		super(hint);
 	}
 
 	void initialize(uint size) {

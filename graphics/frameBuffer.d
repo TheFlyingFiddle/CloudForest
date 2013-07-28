@@ -12,26 +12,21 @@ final class Renderbuffer
 {
 	package const uint glName, width, height;
 
-	this(uint glName, uint width, uint height)
-	{
-		this.glName = glName;
-		this.width = width;
-		this.height = height;
-	}
-
-	static Renderbuffer create(InternalFormat format, uint width, uint height, uint samples = 0) 
+	this(InternalFormat format, uint width, uint height, uint samples = 0)
 	{
 		uint glName;
 		glGenRenderbuffers(1, &glName);
-		auto rb = new Renderbuffer(glName, width, height);
 
+		this.glName = glName;
+		this.width = width;
+		this.height = height;
+
+		glBindRenderbuffer(GL_RENDERBUFFER, glName);
 		if(samples > 0) {
 			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, width, height);
 		} else {
 			glRenderbufferStorage(GL_RENDERBUFFER, format, width, height);			
 		}
-
-		return rb;
 	}
 
 	bool deleted() @property
@@ -76,20 +71,11 @@ final class FrameBuffer
 {
 	package const uint glName;
 
-	this(uint glName)
-	{
-		this.glName = glName;
-	}
-
-	static FrameBuffer[] frameBuffers;
-	static FrameBuffer create() 
+	this()
 	{
 		uint glName;
 		glGenFramebuffers(1, &glName);
-		auto fb = new FrameBuffer(glName);
-		frameBuffers ~= fb;
-
-		return fb;
+		this.glName = glName;
 	}
 
 	bool deleted() @property
@@ -103,13 +89,6 @@ final class FrameBuffer
 	body
 	{
 		glDeleteFramebuffers(1, &glName);
-		frameBuffers.remove(frameBuffers.countUntil(this));
-	}
-
-	static void destroyAll()
-	{
-		foreach(buffer; frameBuffers) 
-			buffer.destroy();
 	}
 
 	void attachRenderBuffer(FrameBufferAttachement attachement,
@@ -133,8 +112,8 @@ final class FrameBuffer
 
 	void attachCubeFace(FrameBufferAttachement attachement,
 							 TextureCube texture, TextureCubeFace cubeFace, uint mipLevel)
-	in { assertBound(this); }
-	out { assertNoGLError(); }
+		in { assertBound(this); }
+		out { assertNoGLError(); }
 	body
 	{
 		glFramebufferTexture2D(FrameBufferTarget.draw, attachement, cubeFace, texture.glName, mipLevel);
@@ -153,7 +132,7 @@ final class FrameBuffer
 	static void blit(FrameBuffer from, FrameBuffer to,
 						  uint4 fromRect, uint4 toRect, 
 						  BlitMode mode, BlitFilter filter)
-	out { assertNoGLError(); }
+		out { assertNoGLError(); }
 	body
 	{
 		Context.frameBuffer.read = from;

@@ -12,15 +12,9 @@ final class UniformBuffer : Buffer
 { 
 	override BufferTarget target() @property { return BufferTarget.uniform; }
 
-	this(uint glName, BufferHint hint) 
+	this(BufferHint hint) 
 	{ 
-		super(glName, hint);
-	}
-
-	static UniformBuffer create(BufferHint hint) 
-	{
-		auto buffer = new UniformBuffer(Buffer.createBuffer(), hint);		
-		return buffer;
+		super(hint);
 	}
 
 	void initialize(uint size) 

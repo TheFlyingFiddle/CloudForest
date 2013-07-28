@@ -64,37 +64,19 @@ final class Program
 	private UniformBlockInfo[string] uniformBlocks;
 	private UniformInfo[string] uniforms; //Only contains uniforms not in a uniform block.
 
-	private this(uint glName)
-	{
-		this.glName = glName;
-	}
-
-	static Program create()
+	this()
 		out { assertNoGLError(); }
 	body
 	{
-		auto program = new Program(glCreateProgram());
-		return program;
+		this.glName = glCreateProgram();
 	}
 
-	static Program create(Shader[] shaders...)
+	this(Shader[] shaders...) 
 		out { assertNoGLError(); }
 	body
 	{
-		auto program = new Program(glCreateProgram());
-		program.link(shaders);
-		return program;
-	}
-
-	static Program create(TransformFeedbackBufferMode mode, string[] varyings, 
-								 Shader[] shaders...)
-		out { assertNoGLError(); }
-	body
-	{
-		auto program = new Program(glCreateProgram());
-		program.transformFeedbackVaryings(mode, varyings);
-		program.link(shaders);
-		return program;
+		this();
+		this.link(shaders);
 	}
 
 	void destroy() 
@@ -170,7 +152,7 @@ final class Program
 		return c_buffer[0 .. length].idup;
 	}
 
-	private void transformFeedbackVaryings(TransformFeedbackBufferMode mode, string[] varyings) 
+	void feedbackVaryings(FeedbackMode mode, string[] varyings) 
 	{
 		import std.string;
 		immutable (char)*[] v; 
@@ -331,11 +313,11 @@ final class Program
 		return cast(PrimitiveType)getProgramParameter(ProgramProperty.geometryOutputType);
 	}
 
-	TransformFeedbackBufferMode transformFeedbackBufferMode() @property
+	FeedbackMode feedbackMode() @property
 		out { assertNoGLError(); }
 	body
 	{
-		return cast(TransformFeedbackBufferMode)getProgramParameter(ProgramProperty.transformFeedbackBufferMode);
+		return cast(FeedbackMode)getProgramParameter(ProgramProperty.transformFeedbackBufferMode);
 	}
 
 	private int activeAttributesMaxLength() @property

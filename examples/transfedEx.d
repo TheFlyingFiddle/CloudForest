@@ -36,9 +36,9 @@ public class ParticleSystem : Example
 			particle = Particle(float2(-s * rand2,-c * rand2), float2(s,c));
 		}
 
-		query = Query.create();
-		vbos[0] = VBO.create(BufferHint.streamDraw);
-		vbos[1] = VBO.create(BufferHint.streamDraw);
+		query = new Query();
+		vbos[0] = new VBO(BufferHint.streamDraw);
+		vbos[1] = new VBO(BufferHint.streamDraw);
 		
 		gl.vertexBuffer = vbos[0];
 		vbos[0].bufferData(particles);
@@ -46,15 +46,17 @@ public class ParticleSystem : Example
 		gl.vertexBuffer = vbos[1];
 		vbos[1].initialize(vbos[0].size);
 		
-		vao = VAO.create();
+		vao = new VAO();
 		
-		auto vs = Shader.create(ShaderType.vertex, vertSource);
-		auto fs = Shader.create(ShaderType.fragment, fragSource);
+		auto vs = new Shader(ShaderType.vertex, vertSource);
+		auto fs = new Shader(ShaderType.fragment, fragSource);
 
-		feedback = Program.create(TransformFeedbackBufferMode.interleavedAttribs, 
-										  ["position0", "velocity0"], vs);
+		feedback = new Program();
+		feedback.feedbackVaryings(FeedbackMode.interleavedAttribs,
+										  ["position0", "velocity0"]);
+		feedback.link(vs);
 
-		renderp = Program.create(vs, fs);
+		renderp = new Program(vs, fs);
 	}
 
 	override void reshape(int w, int h) { }

@@ -14,11 +14,12 @@ class NewtonExample : Example
 
 	this() 
 	{
-		auto vs = Shader.create(ShaderType.vertex,vertSource);
-		auto fs = Shader.create(ShaderType.fragment,fragSource);	
-		program = Program.create(vs, fs);
-		vertexArray = VertexArray.create();
-		vertexBuffer = VertexBuffer.create(BufferHint.staticDraw);
+		auto vs = new Shader(ShaderType.vertex,vertSource);
+		auto fs = new Shader(ShaderType.fragment,fragSource);	
+		program = new Program(vs, fs);
+
+		vertexArray	  = new VAO();
+		vertexBuffer  = new VBO(BufferHint.staticDraw);
 
 		gl.program = program;
 		gl.vertexArray = vertexArray;

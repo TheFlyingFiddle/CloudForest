@@ -24,13 +24,13 @@ class BlobEx : Example
 
 	this() 
 	{
-		auto vs = Shader.create(ShaderType.vertex,vertSource);
-		auto fs = Shader.create(ShaderType.fragment,fragSource);	
-		program = Program.create(vs, fs);
+		auto vs = new Shader(ShaderType.vertex,vertSource);
+		auto fs = new Shader(ShaderType.fragment,fragSource);	
+		program = new Program(vs, fs);
 		
-		vertexArray		= VAO.create();
-		vertexBuffer	= VBO.create(BufferHint.staticDraw);
-		uniformBuffer  = UBO.create(BufferHint.staticDraw);
+		vertexArray	  = new VAO();
+		vertexBuffer  = new VBO(BufferHint.staticDraw);
+		uniformBuffer = new UBO(BufferHint.staticDraw);
 
 		gl.vertexArray		= vertexArray;
 		gl.vertexBuffer   = vertexBuffer;

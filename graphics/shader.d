@@ -25,20 +25,13 @@ final class Shader
 	package const uint glName;
 	
 	//Creates a shader from a shader name given by the opengl driver.
-	package this(uint glName)
-		in { assert(glIsShader(glName)); }
+	this(ShaderType type, const(char)[] source)
 		out { assertNoGLError(); }
 	body
 	{
-		this.glName = glName;
-	}
-
-	static Shader create(ShaderType type, const(char)[] source) 
-	{
-		Shader shader = new Shader(glCreateShader(type));
-		shader.source = source;
-		shader.compile();
-		return shader;
+		this.glName = glCreateShader(type);
+		this.source = source;
+		this.compile();
 	}
 
 	void destroy() 

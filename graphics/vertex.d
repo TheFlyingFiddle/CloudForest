@@ -26,19 +26,12 @@ class VertexArray
 {
 	uint glName;
 
-	private this(uint glName)
+	this()
 		out { assertNoGLError(); }
 	body
 	{
-		this.glName = glName;
-	}
-
-	static VertexArray create() 
-	{
-		uint glName;
 		glGenVertexArrays(1, &glName);
-		return new VertexArray(glName);
-	}	
+	}
 
 	void destroy() 
 		in { assertNotDeleted(this); }

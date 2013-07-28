@@ -39,7 +39,7 @@ void main(string[] argv)
 
 			wasPressed = glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS;
 			glfwSwapBuffers(window);
-			//glfwWaitEvents();
+			glfwPollEvents();
 		}
 
 	} catch(Throwable e) {
