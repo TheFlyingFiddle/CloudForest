@@ -62,7 +62,7 @@ final class Program
 
 	private VertexAttribute[string] attributes;
 	private UniformBlockInfo[string] uniformBlocks;
-	private UniformInfo[string] uniforms; //Only contains uniforms not in a uniform block.
+	UniformInfo[string] uniforms; //Only contains uniforms not in a uniform block.
 
 	this()
 		out { assertNoGLError(); }
@@ -200,27 +200,6 @@ final class Program
 		return AttributeIndexer();
 	}
 
-	private UniformInfo uniformInfo(uint activeIndex)
-	{
-		int size, length, loc;
-		uint type;
-		glGetActiveUniform(glName, activeIndex, c_buffer.length, 
-								 &length, &size, &type,
-								 c_buffer.ptr);
-		loc = glGetUniformLocation(glName, c_buffer.ptr);
-
-		return  UniformInfo(c_buffer[0 .. length].idup, cast(UniformType)type, size, loc);
-	}
-
-	private BlockUniformInfo uniformBlockInfo(uint activeIndex, int offset)
-	{
-		int size, length;
-		uint type;
-		glGetActiveUniform(glName, activeIndex, c_buffer.length, 
-								 &length, &size, &type,
-								 c_buffer.ptr);
-		return BlockUniformInfo(c_buffer[0 .. length].idup, cast(UniformType)type, size, offset);
-	}
 
 	bool deleted() @property
 		out { assertNoGLError(); }
@@ -356,6 +335,33 @@ final class Program
 														 cast(VertexAttributeType)type, 
 														 name);
 		}
+	}
+
+
+	private UniformInfo uniformInfo(uint activeIndex)
+	{
+		int size, length, loc;
+		uint type;
+		glGetActiveUniform(glName, activeIndex, c_buffer.length, 
+								 &length, &size, &type,
+								 c_buffer.ptr);
+		loc = glGetUniformLocation(glName, c_buffer.ptr);
+
+		string name = c_buffer[0 .. length].idup;
+		if(name.length > 3 && name[$ - 3 .. $] == "[0]") 
+			name = name[0 .. $ - 3];
+
+		return  UniformInfo(name, cast(UniformType)type, size, loc);
+	}
+
+	private BlockUniformInfo uniformBlockInfo(uint activeIndex, int offset)
+	{
+		int size, length;
+		uint type;
+		glGetActiveUniform(glName, activeIndex, c_buffer.length, 
+								 &length, &size, &type,
+								 c_buffer.ptr);
+		return BlockUniformInfo(c_buffer[0 .. length].idup, cast(UniformType)type, size, offset);
 	}
 
 	private void cacheUniforms() 
@@ -499,7 +505,7 @@ final class Program
 
 	private void flushUniform(int loc, uint[] value) 
 	{
-		glUniform1uiv(loc, value.length, cast(float*)value.ptr);
+		glUniform1uiv(loc, value.length, cast(uint*)value.ptr);
 	}
 
 	private void flushUniform(int loc, uint2 value)

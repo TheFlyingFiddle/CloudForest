@@ -40,6 +40,8 @@ class MandelbrotExample : Example
 									  float4(0.1f, 0.1f, 0.1f, 1.0f)];
 
 		program.uniform["clrs"] = colorMap;
+
+		std.stdio.writeln(program.uniforms);
 	}
 
 
