@@ -42,7 +42,7 @@
   <pic>0</pic>
   <cov>0</cov>
   <nofloat>0</nofloat>
-  <Dversion>2.043</Dversion>
+  <Dversion>2</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
@@ -84,12 +84,12 @@
   <objfiles />
   <linkswitches />
   <libfiles>DerelictGL3.lib DerelictGLFW3.lib DerelictUtil.lib</libfiles>
-  <libpaths>C:\Derelict3\lib</libpaths>
+  <libpaths>C:\Users\Gustav\Documents\GitHub\Derelict3\lib\dmd</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions />
+  <additionalOptions>-IC:\Users\Gustav\Documents\GitHub\Derelict3\import</additionalOptions>
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
