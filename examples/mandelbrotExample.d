@@ -21,8 +21,8 @@ class MandelbrotExample : Example
 		vertexBuffer  = new VBO(BufferHint.staticDraw);
 
 		gl.program = program;
-		gl.vertexArray = vertexArray;
-		gl.vertexBuffer = vertexBuffer;
+		gl.vao = vertexArray;
+		gl.vbo = vertexBuffer;
 
 		float[16] screenRect = [-1,-1, -1.5, -0.5, 
 								      -1, 1, -1.5,  1.0,
@@ -52,7 +52,7 @@ class MandelbrotExample : Example
 	override void render(double time) 
 	{
 		gl.program = program;
-		gl.vertexArray = vertexArray;
+		gl.vao = vertexArray;
 
 		gl.clearColor(Color(0, 1, 1f, 1));
 		gl.clear(ClearFlags.color);
@@ -82,7 +82,7 @@ uniform vec4 clrs[5];
 
 void main()
 {
-vec2 z = vec2(0.0, 0.0);
+	vec2 z = vec2(0.0, 0.0);
 	vec2 c = vertCoord;
 	int i = 0, max = 128;
 	while((i != max) && (distance(z, c) < 2.0f)) 

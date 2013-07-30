@@ -54,12 +54,13 @@ class VertexArray
 	VertexArray bindAttribute(T)(VertexAttribute attrib, int stride, int offset) 
 		in { 
 			assertBound(this); 
-			assert(Context.vertexBuffer);
+			assert(Context.vao);
 			assertValidAttib!T(attrib);
 		}
 		out { assertNoGLError(); } 
 	body
 	{
+
 		glEnableVertexAttribArray(attrib.loc);
 		glVertexAttribPointer(attrib.loc, glUnitSize!T, glType!T, 
 									 glNormalized!T, stride, 
@@ -96,8 +97,8 @@ class VertexArray
 	*/
 	void bindAttributesOfType(T)(Program program) if(is(T == struct))
 	in { 
-		assert(Context.vertexArray == this);
-		assert(Context.vertexBuffer);
+		assert(Context.vao == this);
+		assert(Context.vbo);
 	}
 	out { assertNoGLError(); }
 	body

@@ -47,7 +47,7 @@
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
   <program>$(DMDInstallDir)windows\bin\dmd.exe</program>
-  <imppath>C:\Users\Gustav\Documents\GitHub\Derelict3\import</imppath>
+  <imppath>C:\Derelict3\import</imppath>
   <fileImppath />
   <outdir>$(ConfigurationName)</outdir>
   <objdir>$(OutDir)</objdir>
@@ -84,7 +84,7 @@
   <objfiles />
   <linkswitches />
   <libfiles>DerelictGL3.lib DerelictGLFW3.lib DerelictUtil.lib</libfiles>
-  <libpaths>C:\Users\Gustav\Documents\GitHub\Derelict3\lib\dmd</libpaths>
+  <libpaths>C:\Derelict3\lib</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>

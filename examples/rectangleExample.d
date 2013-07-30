@@ -22,8 +22,8 @@ class RectangleExample : Example
 		vertexBuffer  = new VBO(BufferHint.staticDraw);
 
 		gl.program = program;
-		gl.vertexArray = vertexArray;
-		gl.vertexBuffer = vertexBuffer;
+		gl.vao = vertexArray;
+		gl.vbo = vertexBuffer;
 
 		float triangle[20] = [-1,-1, 1, 1, 1, 
 									 -1, 1, 1, 0, 0,
@@ -40,7 +40,7 @@ class RectangleExample : Example
 	override void render(double time) 
 	{
 		gl.program = program;
-		gl.vertexArray = vertexArray;
+		gl.vao = vertexArray;
 
 		gl.clearColor(Color(0, 1, 1f, 1));
 		gl.clear(ClearFlags.color);

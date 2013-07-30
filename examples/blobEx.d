@@ -33,9 +33,9 @@ class BlobEx : Example
 		vertexBuffer  = new VBO(BufferHint.staticDraw);
 		uniformBuffer = new UBO(BufferHint.staticDraw);
 
-		gl.vertexArray		= vertexArray;
-		gl.vertexBuffer   = vertexBuffer;
-		gl.uniformBuffer  = uniformBuffer;
+		gl.vao		= vertexArray;
+		gl.vbo   = vertexBuffer;
+		gl.ubo  = uniformBuffer;
 
 		float2 triangle[4] = [float2(-1f,-1f), 
 							  		 float2(-1f, 1f),
@@ -60,7 +60,7 @@ class BlobEx : Example
 	override void render(double time) 
 	{
 		gl.program = program;
-		gl.vertexArray = vertexArray;
+		gl.vao = vertexArray;
 
 		program.validate();
 

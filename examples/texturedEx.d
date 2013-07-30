@@ -13,7 +13,7 @@ class TextureExample : Example
 	private Program program;
 	private VertexArray vertexArray;
 	private VertexBuffer vertexBuffer;
-	private Texture texture;
+	private Texture2D texture;
 	private Sampler sampler;
 
 	this() 
@@ -26,8 +26,8 @@ class TextureExample : Example
 		vertexBuffer  = new VBO(BufferHint.staticDraw);
 
 		gl.program = program;
-		gl.vertexArray = vertexArray;
-		gl.vertexBuffer = vertexBuffer;
+		gl.vao = vertexArray;
+		gl.vbo = vertexBuffer;
 
 		float triangle[8] = [-1,-1, 
 									-1, 1,
@@ -58,7 +58,7 @@ class TextureExample : Example
 	override void render(double time2) 
 	{
 		gl.program = program;
-		gl.vertexArray = vertexArray;
+		gl.vao = vertexArray;
 
 		auto i = std.random.uniform(0, gl.getInteger(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS));
 		gl.textures[i] = texture;

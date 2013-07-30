@@ -446,7 +446,7 @@ final class Program
 
 				case UT.mat2   : assertNotImplemented("mat2   vertex attribute arrays"); break;
 				case UT.mat3   : assertNotImplemented("mat3   vertex attribute arrays"); break;
-				case UT.mat4   : assertNotImplemented("mat4   vertex attribute arrays"); break;
+				case UT.mat4   : validate!(mat4);													 break;
 				case UT.mat2x3 : assertNotImplemented("mat2x3 vertex attribute arrays"); break;
 				case UT.mat2x4 : assertNotImplemented("mat2x4 vertex attribute arrays"); break;
 				case UT.mat3x2 : assertNotImplemented("mat3x2 vertex attribute arrays"); break;
@@ -584,7 +584,7 @@ final class Program
 
 	private void flushUniform(int loc, in mat4 matrix)
 	{
-		glUniformMatrix4fv(loc, 1, GL_FALSE, matrix.ptr);
+		glUniformMatrix4fv(loc, 1, GL_FALSE, cast(float*)&matrix);
 	}
 }
 

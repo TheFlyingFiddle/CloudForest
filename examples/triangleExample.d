@@ -21,8 +21,8 @@ class TriangleExample : Example
 		vertexBuffer  = new VBO(BufferHint.staticDraw);
 
 		gl.program = program;
-		gl.vertexArray = vertexArray;
-		gl.vertexBuffer = vertexBuffer;
+		gl.vao = vertexArray;
+		gl.vbo = vertexBuffer;
 
 		float triangle[9] = [0.0f, 0.0f, 0.0f,
 								   1.0f, 0.0f, 0.0f,
@@ -36,7 +36,7 @@ class TriangleExample : Example
 	override void render(double time) 
 	{
 		gl.program = program;
-		gl.vertexArray = vertexArray;
+		gl.vao = vertexArray;
 
 
 		gl.clearColor(Color(0, 1, 1f, 1));

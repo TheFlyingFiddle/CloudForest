@@ -19,6 +19,52 @@ import math.vector;
 import math.vector;
 public import std.algorithm, std.typecons : Flag, Yes, No;
 
+
+struct BlendState
+{
+	BlendEquation	 colorEquation;
+	BlendEquation	 alphaEquation;
+	BlendFactor		 colorDst;
+	BlendFactor		 colorSrc;
+	BlendFactor		 alphaDst;
+	BlendFactor		 alphaSrc;
+
+	
+	enum premultiplied	 = BlendState(BlendEquation.add, 
+											  BlendEquation.add,
+											  BlendFactor.oneMinusSourceAlpha,
+											  BlendFactor.one,
+											  BlendFactor.oneMinusSourceAlpha,
+											  BlendFactor.one);
+
+	enum nonPremultiplied = BlendState(BlendEquation.add, 
+												  BlendEquation.add,
+												  BlendFactor.oneMinusSourceAlpha,
+												  BlendFactor.srcAlpha,
+												  BlendFactor.oneMinusSourceAlpha,
+												  BlendFactor.srcAlpha);
+}
+
+struct StencilState
+{
+	CompareFunc			funcFront;
+	CompareFunc			funcBack;
+	StencilOp			sfailBack;
+	StencilOp			sfailFront;
+	StencilOp			dfailBack;
+	StencilOp			dfailFront;
+	StencilOp			dppassBack;
+	StencilOp			dppassFront;
+	int					funcMaskFront;
+	int					funcMaskBack;
+	int					maskFront;
+	int					maskBack;
+	int					refFront;
+	int					refBack;
+}
+
+
+
 alias Context gl;
 struct Context
 {
@@ -33,12 +79,7 @@ struct Context
 	private static Sampler[]					 _samplers;
 
 	//Blending 
-	private static BlendEquation				 _colorBlendEquation;
-	private static BlendEquation				 _alphaBlendEquation;
-	private static BlendFactor					 _colorDstBlendFactor;
-	private static BlendFactor					 _colorSrcBlendFactor;
-	private static BlendFactor					 _alphaDstBlendFactor;
-	private static BlendFactor					 _alphaSrcBlendFactor;
+	private static BlendState					 _blendState;
 	private static Color							 _blendColor;
 	
 	//Depth
@@ -48,22 +89,8 @@ struct Context
 	private static bool							 _depthMask;
 	
 	//Stencil
-	private static CompareFunc					 _stencilFuncFront;
-	private static CompareFunc					 _stencilFuncBack;
-	private static StencilOp					 _sfailBack;
-	private static StencilOp					 _sfailFront;
-	private static StencilOp					 _dfailBack;
-	private static StencilOp					 _dfailFront;
-	private static StencilOp					 _dppassBack;
-	private static StencilOp					 _dppassFront;
-	private static int						    _stencilFuncMaskFront;
-	private static int							 _stencilFuncMaskBack;
-	private static int							 _stencilMaskFront;
-	private static int							 _stencilMaskBack;
-	private static int							 _stencilRefFront;
-	private static int							 _stencilRefBack;
-	private static int							 _stencilClearMask;
-
+	private static StencilState				  _stencilState;
+	private static int							  _stencilClearMask;
 
 	private static DrawBuffer[]				 _drawBuffers;
 	private static DrawBuffer					 _readBuffer;
@@ -146,29 +173,31 @@ struct Context
 		return FeedbackIndexer();
 	}
 
-	package static void bindTexture(Texture texture, uint imageUnit) 		
+	package static void bindTexture(TextureTarget target, Texture texture, uint imageUnit) 		
 		in { assert(imageUnit <= _textures.length); }
 		out { assertNoGLError(); }
 	body
 	{
 		glActiveTexture(GL_TEXTURE0 + imageUnit);
 		if(!texture) {
-			glBindTexture(texture.target, 0);
+			glBindTexture(target, 0);
 		} else {
-			Texture current = _textures[imageUnit].get(texture.target, null);
+			Texture current = _textures[imageUnit].get(target, null);
 			if(texture != current) {
-				glBindTexture(texture.target, texture.glName);
+				glBindTexture(target, texture.glName);
 			}
 		}
 		
-		_textures[imageUnit][texture.target] = texture;
+		_textures[imageUnit][target] = texture;
 	}
 
 	static auto textures()
 	{
 		struct TextureIndexer {
-			void opIndexAssign(Texture texture, uint index) {
-				Context.bindTexture(texture, index);
+			void opIndexAssign(T)(T texture, uint index) 
+				if(is(T : Texture))
+			{
+				Context.bindTexture(T.target, texture, index);
 			}
 
 			Texture opIndex(TextureTarget target, uint index) {
@@ -336,62 +365,62 @@ struct Context
 		return (target in _boundBuffers) ? _boundBuffers[target] : null;
 	}
 
-	static VertexBuffer vertexBuffer() @property
+	static VertexBuffer vbo() @property
 	{
 		return cast(VertexBuffer)_boundBuffers[BufferTarget.vertex];
 	}
 
-	static void vertexBuffer(VertexBuffer buffer) @property
+	static void vbo(VertexBuffer buffer) @property
 	{
 		bindBuffer(BufferTarget.vertex, buffer);
 	}
 
-	static IndexBuffer indexBuffer() @property
+	static IndexBuffer ibo() @property
 	{
 		return cast(IndexBuffer)_boundBuffers[BufferTarget.index];
 	}
 
-	static void indexBuffer(IndexBuffer buffer) @property
+	static void ibo(IndexBuffer buffer) @property
 	{
 		bindBuffer(BufferTarget.index, buffer);
 	}
 
-	static PixelPackBuffer pixelPackBuffer() @property
+	static PixelPackBuffer pbo() @property
 	{
 		return cast(PixelPackBuffer)_boundBuffers[BufferTarget.pixelPack];
 	}
 
-	static void pixelPackBuffer(PixelPackBuffer buffer) @property
+	static void pbo(PixelPackBuffer buffer) @property
 	{
 		bindBuffer(BufferTarget.pixelPack, buffer);
 	}
 
-	static PixelUnpackBuffer pixelUnpackBuffer() @property
+	static PixelUnpackBuffer pubo() @property
 	{
 		return cast(PixelUnpackBuffer)_boundBuffers[BufferTarget.pixelUnpack];
 	}
 
-	static void pixelUnpackBuffer(PixelUnpackBuffer buffer) @property
+	static void pubo(PixelUnpackBuffer buffer) @property
 	{
 		bindBuffer(BufferTarget.pixelUnpack, buffer);
 	}
 
-	static TextureBuffer textureBuffer() @property
+	static TextureBuffer tbo() @property
 	{
 		return cast(TextureBuffer)_boundBuffers[BufferTarget.texture];
 	}
 
-	static void textureBuffer(TextureBuffer buffer) @property
+	static void tbo(TextureBuffer buffer) @property
 	{
 		bindBuffer(BufferTarget.texture, buffer);
 	}
 
-	static UniformBuffer uniformBuffer() @property
+	static UniformBuffer ubo() @property
 	{
 		return cast(UniformBuffer)_boundBuffers[BufferTarget.uniform];
 	}
 
-	static void uniformBuffer(UniformBuffer buffer) @property
+	static void ubo(UniformBuffer buffer) @property
 	{
 		bindBuffer(BufferTarget.uniform, buffer);
 	}
@@ -406,12 +435,12 @@ struct Context
 		useProgram(program);
 	}
 
-	static VertexArray vertexArray() @property
+	static VertexArray vao() @property
 	{
 		return _vertexArray;
 	}
 
-	static void vertexArray(VertexArray array) @property
+	static void vao(VertexArray array) @property
 	{
 		bindVertexArray(array);
 	}
@@ -708,53 +737,24 @@ struct Context
 		return _depthRange;
 	}
 
-	static void blendEquation(BlendEquation equation) @property
-		out { assertNoGLError(); }
-	body
+	static void blendState(in BlendState state) @property
 	{
-		if(_alphaBlendEquation != equation || _colorBlendEquation != equation) {
-			_alphaBlendEquation = equation;
-			_colorBlendEquation = equation;
+		if(_blendState != state) 
+		{
+			_blendState = state;
+			glBlendEquationSeparate(state.colorEquation, 
+											state.alphaEquation);
 
-			glBlendEquation(equation);
+			glBlendFuncSeparate(state.colorSrc, 
+									  state.colorDst, 
+									  state.alphaSrc, 
+									  state.alphaDst);
 		}
-	}
-
-	static void blendEquation(BlendEquation colorEqu, BlendEquation alphaEqu) @property
-		out { assertNoGLError(); }
-	body
-	{
-		if(_alphaBlendEquation != alphaEqu || _colorBlendEquation != colorEqu) {
-			_alphaBlendEquation = alphaEqu;
-			_colorBlendEquation = colorEqu;
-
-			glBlendEquationSeparate(colorEqu, alphaEqu);
-		}
-	}
-
-	static BlendEquation colorBlendEquation() @property
-	{
-		return _colorBlendEquation;
-	}
-
-	static BlendEquation alphaBlendEquation() @property
-	{
-		return _alphaBlendEquation;
 	}
 	
-	static void blendFunc(BlendFactor src, BlendFactor dst) 
-		out { assertNoGLError(); }
-	body
+	static BlendState blendState() @property
 	{
-		if(_colorSrcBlendFactor != src || _alphaSrcBlendFactor != src
-		|| _colorDstBlendFactor != dst || _alphaDstBlendFactor != dst) {
-			_colorSrcBlendFactor = src;
-			_alphaSrcBlendFactor = src;
-			_colorDstBlendFactor = dst;
-			_alphaDstBlendFactor = dst;
-			
-			glBlendFunc(src, dst);
-		}
+		return _blendState;
 	}
 
 	static void polygonMode(PolygonMode mode) @property
@@ -824,42 +824,6 @@ struct Context
 		return _viewportRect;
 	}
 
-	static void blendFuncSeparate(BlendFactor colorSrc,BlendFactor alphaSrc,
-											BlendFactor colorDst, BlendFactor alphaDst) 
-	out { assertNoGLError(); }
-	body
-	{
-		if(_colorSrcBlendFactor != colorSrc || _alphaSrcBlendFactor != alphaSrc
-			|| _colorDstBlendFactor != colorDst || _alphaDstBlendFactor != alphaDst) {
-				_colorSrcBlendFactor = colorSrc;
-				_alphaSrcBlendFactor = alphaSrc;
-				_colorDstBlendFactor = colorDst;
-				_alphaDstBlendFactor = alphaDst;
-
-				glBlendFuncSeparate(colorSrc, colorDst, alphaSrc, alphaDst);
-			}
-	}
-
-	static BlendFactor colorSrcBlendFactor() @property
-	{
-		return _colorSrcBlendFactor;
-	}
-
-	static BlendFactor alphaSrcBlendFactor() @property
-	{
-		return _alphaSrcBlendFactor;
-	}
-
-	static BlendFactor colorDstBlendFactor() @property
-	{
-		return _colorDstBlendFactor;
-	}
-
-	static BlendFactor alphaDstBlendFactor() @property
-	{
-		return _alphaDstBlendFactor;
-	}
-
 	static float depthClearValue() @property
 	{
 		return _depthClearValue;
@@ -875,212 +839,23 @@ struct Context
 		}
 	}
 
-
-	static void stencilFunc(CompareFunc func,
-									int refVal,
-									uint mask) 
-		out { assertNoGLError(); }
-	body
+	static void stencilState(in StencilState state) @property
 	{
-		if(_stencilFuncBack	    != func   || 
-			_stencilFuncFront     != func   || 
-			_stencilRefBack       != refVal ||
-			_stencilRefFront      != refVal ||
-			_stencilFuncMaskBack  != mask   ||
-			_stencilFuncMaskFront != mask) 
+		if(_stencilState != state) 
 		{
-			_stencilFuncBack		 = func;
-			_stencilFuncFront		 = func;
-			_stencilRefBack		 = refVal;
-			_stencilRefFront		 = refVal;
-			_stencilFuncMaskBack  = mask;
-			_stencilFuncMaskFront = mask;
-
-			glStencilFunc(func, refVal, mask);
+			_stencilState = state;
+			glStencilFuncSeparate(Face.front, state.funcFront, state.refFront, state.funcMaskFront);
+			glStencilFuncSeparate(Face.back , state.funcBack, state.refBack, state.funcMaskBack);
+			glStencilOpSeparate(Face.front, state.sfailFront, state.dfailFront, state.dppassFront);
+			glStencilOpSeparate(Face.back, state.sfailBack, state.dfailBack, state.dppassBack);
+			glStencilMaskSeparate(Face.front, state.maskFront);
+			glStencilMaskSeparate(Face.back,  state.maskBack);
 		}
 	}
 
-	static void stencilFuncSeparate(Face face,
-											  CompareFunc func,
-											  int refVal,
-											  uint mask)
-		out { assertNoGLError(); }
-	body
+	static StencilState stencilState() @property
 	{
-		if(face == Face.front) {
-			if(_stencilFuncFront     != func   || 
-				_stencilRefFront      != refVal ||
-				_stencilFuncMaskFront != mask) 
-{
-				_stencilFuncFront		 = func;
-				_stencilRefFront		 = refVal;
-				_stencilFuncMaskFront = mask;
-				glStencilFuncSeparate(face, func, refVal, mask);
-			}
-		} else {
-			if(_stencilFuncBack	    != func   || 
-				_stencilRefBack       != refVal ||
-				_stencilFuncMaskBack  != mask)
-			{
-				_stencilFuncBack		 = func;
-				_stencilRefBack		 = refVal;
-				_stencilFuncMaskBack  = mask;
-
-				glStencilFuncSeparate(face, func, refVal, mask);
-			}
-		}
-	}
-
-	static void stencilOp(StencilOp sfail,
-								 StencilOp dfail,
-								 StencilOp dppass) 
-	{
-		if(_sfailBack   != sfail  ||
-			_sfailFront  != sfail  ||
-			_dfailBack	 != dfail  ||
-			_dfailFront  != dfail  ||
-			_dppassBack  != dppass ||
-			_dppassFront != dppass) 
-		{
-			_sfailBack = sfail;
-			_sfailFront = sfail;
-			_dfailBack = dfail;
-			_dfailFront = dfail;
-			_dppassBack = dppass;
-			_dppassFront = dppass;
-			glStencilOp(sfail, dfail, dppass);		
-		}
-	}
-
-	static void stencilOpSaparate(Face face,
-										   StencilOp sfail,
-											StencilOp dfail,
-											StencilOp dppass) 
-	{
-		if(face == Face.front) {
-			if(_sfailFront  != sfail  ||
-				_dfailFront  != dfail  ||
-				_dppassFront != dppass) 
-			{
-				_sfailFront = sfail;
-				_dfailFront = dfail;
-				_dppassFront = dppass;
-				glStencilOpSeparate(face, sfail, dfail, dppass);		
-			}
-		} else {
-			if(_sfailBack   != sfail  ||
-				_dfailBack	 != dfail  ||
-				_dppassBack  != dppass) 
-			{
-				_sfailBack = sfail;
-				_dfailBack = dfail;
-				_dppassBack = dppass;
-				glStencilOpSeparate(face, sfail, dfail, dppass);	
-			}
-		}
-	}
-
-
-	static void stencilMask(uint mask) @property
-		out { assertNoGLError(); }
-	body
-	{
-		if(_stencilMaskBack  != mask ||
-			_stencilMaskFront != mask) {
-				_stencilMaskBack = mask;
-				_stencilMaskFront = mask;
-				glStencilMask(mask);
-			}
-	}
-
-	static void stencilMaskSeparate(Face face, uint mask) @property
-		out { assertNoGLError(); }
-	body
-	{
-		if(face == Face.front) {
-			if(_stencilMaskFront != mask) {
-				_stencilMaskFront = mask;
-				glStencilMaskSeparate(face, mask);
-			}
-		} else {
-			if(_stencilMaskBack != mask) {
-				_stencilMaskBack = mask;
-				glStencilMaskSeparate(face, mask);
-			}
-		}
-	}
-
-	static StencilOp sfailBack() @property
-	{
-		return _sfailBack;
-	}
-
-	static StencilOp sfailFront() @property
-	{
-		return _sfailFront;
-	}
-
-	static StencilOp dfailBack() @property
-	{
-		return _dfailBack;
-	}
-
-	static StencilOp dfailFront() @property
-	{
-		return _dfailBack;
-	}
-
-	static StencilOp dppassBack() @property
-	{
-		return _dppassBack;
-	}
-
-	static StencilOp dppassFront() @property
-	{
-		return _dppassFront;
-	}
-
-
-
-
-	static CompareFunc stencilFuncBack() @property
-	{
-		return _stencilFuncBack;
-	}
-	
-	static CompareFunc stencilFuncFront() @property
-	{
-		return _stencilFuncFront;
-	}
-
-	static int stencilRefBack() @property
-	{
-		return _stencilRefBack;
-	}
-
-	static int stencilRefFront() @property
-	{
-		return _stencilRefFront;
-	}
-
-	static uint stencilFuncMaskBack() @property
-	{
-		return _stencilFuncMaskBack;
-	}
-
-	static uint stencilFuncMaskFront() @property
-	{
-		return _stencilFuncMaskFront;
-	}
-
-	static uint stencilMaskBack() @property 
-	{
-		return _stencilMaskBack;
-	}
-
-	static uint stencilMaskFront() @property
-	{
-		return _stencilMaskFront;
+		return _stencilState;
 	}
 
 	static int stencilClearMask() @property
@@ -1239,7 +1014,7 @@ struct Context
 	static void drawArrays(PrimitiveType type, uint offset, uint count) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
+			assert(vao); 
 			assert(program.validate().valid, program.infoLog);
 		}
 		out { assertNoGLError(); }
@@ -1251,7 +1026,7 @@ struct Context
 	static void multiDrawArrays(PrimitiveType type, int[] first, int[] count) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
+			assert(vao); 
 			assert(program.validate().valid, program.infoLog);
 			assert(first.length == count.length);
 		}
@@ -1265,8 +1040,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(program.validate().valid, program.infoLog);
 		}
 		out { assertNoGLError(); }
@@ -1279,8 +1054,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(offset.length == count.length);
 			assert(program.validate().valid, program.infoLog);
 		}
@@ -1295,8 +1070,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(offset.length == count.length && count.length == baseVertex.length);
 			assert(program.validate().valid, program.infoLog);
 		}
@@ -1313,8 +1088,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(program.validate().valid, program.infoLog);
 		}
 	out { assertNoGLError(); }
@@ -1327,8 +1102,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(program.validate().valid, program.infoLog);
 		}
 	out { assertNoGLError(); }
@@ -1343,8 +1118,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(program.validate().valid, program.infoLog);
 		}
 	out { assertNoGLError(); }
@@ -1357,8 +1132,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(program.validate().valid, program.infoLog);
 		}
 	out { assertNoGLError(); }
@@ -1375,8 +1150,8 @@ struct Context
 		if(is(T == ubyte) || is(T == ushort) || is(T == uint)) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
-			assert(indexBuffer);
+			assert(vao); 
+			assert(ibo);
 			assert(program.validate().valid, program.infoLog);
 		}
 	out { assertNoGLError(); }
@@ -1388,7 +1163,7 @@ struct Context
 	static void drawArraysInstanced(PrimitiveType type, uint offset, uint count, uint instanceCount) 
 		in { 
 			assert(program); 
-			assert(vertexArray); 
+			assert(vao); 
 			assert(program.validate().valid, program.infoLog);
 		}
 		out { assertNoGLError(); }

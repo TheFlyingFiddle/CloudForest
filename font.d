@@ -26,11 +26,10 @@ class CharInfo
 
 	protected void fix(Texture2D page)
 	{
-		this._textureCoords = this._srcRect;
-		this._textureCoords.x /= (page.width);
-		this._textureCoords.z /= (page.width);
-		this._textureCoords.y /= (page.height);
-		this._textureCoords.w /= (page.height);
+		this._textureCoords.x = this._srcRect.x / page.width;
+		this._textureCoords.y = this._srcRect.y / page.width;
+		this._textureCoords.z = (this._srcRect.z  + this.srcRect.x) / page.height;
+		this._textureCoords.w = (this._srcRect.w  + this.srcRect.y) / page.height;
 	}
 }
 
@@ -138,7 +137,6 @@ class Font
 		{
 			foreach(word; splitter(strip(line)))
 			{	
-				std.stdio.writeln(word);
 				if(word.length >= 2 && word[0 .. 2] == "id") {
 					id = to!int(word[3 .. $]);
 					if(chars.length <= id)
@@ -156,12 +154,10 @@ class Font
 					chars[id]._srcRect.y = page.height - to!float(word[2 .. $]);
 				} else if(word.length >= 4 && word[0 .. 4] == "face") {
 					face = word[6 .. $ - 1].idup;
-					std.stdio.writeln(face);
 				} else if (word.length >= 4 && word[0 .. 4] == "size") {
 					size = to!float(word[5 .. $]);
-					std.stdio.writeln(size);
 				} else if(word.length >= 5 && word[0 .. 5] == "width") {
-					chars[id]._srcRect.w = to!float(word[6 .. $]);
+					chars[id]._srcRect.z = to!float(word[6 .. $]);
 				}  else if(word.length >= 6 && word[0 .. 6] == "height") {
 					chars[id]._srcRect.y -= to!float(word[7 .. $]);
 					chars[id]._srcRect.w = to!float(word[7 .. $]);
@@ -169,7 +165,6 @@ class Font
 					chars[id].fix(page);
 				}  else if (word.length >= 10 && word[0 .. 10] == "lineHeight") {
 					lineHeight = to!float(word[11 .. $]);
-					std.stdio.writeln(lineHeight);
 				} 
 			}
 		}

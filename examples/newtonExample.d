@@ -22,8 +22,8 @@ class NewtonExample : Example
 		vertexBuffer  = new VBO(BufferHint.staticDraw);
 
 		gl.program = program;
-		gl.vertexArray = vertexArray;
-		gl.vertexBuffer = vertexBuffer;
+		gl.vao = vertexArray;
+		gl.vbo = vertexBuffer;
 
 		float triangle[8] = [-1,-1, 
 									 -1, 1,
@@ -46,7 +46,7 @@ class NewtonExample : Example
 	override void render(double time2) 
 	{
 		gl.program = program;
-		gl.vertexArray = vertexArray;
+		gl.vao = vertexArray;
 
 
 		gl.clearColor(Color(0, 0, 0, 0));

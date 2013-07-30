@@ -90,8 +90,6 @@ class Texture
 		this.glName = glName;
 	}
 
-	abstract TextureTarget target() @property;
-
 	static uint create()
 	{
 		uint glName;
@@ -115,15 +113,12 @@ class Texture
 
 final class Texture1D : Texture
 {
+	enum target = TextureTarget.texture1D;
+
 	const uint height;
 	this(uint glName, uint height) {
 		super(glName);	
 		this.height = height;
-	}
-
-	override TextureTarget target() @property
-	{
-		return TextureTarget.texture1D; 
 	}
 
 	static Texture1D create(ColorFormat format, ColorType type, 
@@ -149,16 +144,13 @@ final class Texture1D : Texture
 
 final class Texture2D : Texture
 {
+	enum target = TextureTarget.texture2D;
+
 	public const uint width, height;
 	this(uint glName, uint width, uint height) {
 		super(glName);	
 		this.width = width;
 		this.height = height;
-	}
-
-	override TextureTarget target() @property 
-	{ 
-		return TextureTarget.texture2D; 
 	}
 
 	static Texture2D create(ColorFormat format, ColorType type, 
@@ -190,16 +182,13 @@ final class Texture2D : Texture
 
 final class TextureCube : Texture
 {
+	enum target = TextureTarget.textureCube;
+
 	const uint width, height;
 	this(uint glName, uint width, uint height) {
 		super(glName);	
 		this.width = width;
 		this.height = height;
-	}
-
-	override TextureTarget target() @property
-	{ 
-		return TextureTarget.textureCube; 
 	}
 
 	static TextureCube create(ColorFormat format, ColorType type, 
@@ -231,17 +220,14 @@ final class TextureCube : Texture
 
 final class Texture3D : Texture
 {
+	enum target = TextureTarget.texture3D;
+
 	const uint width, height, depth;
 	this(uint glName, uint width, uint height, uint depth) {
 		super(glName);	
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-	}
-
-	override TextureTarget target() @property
-	{ 
-		return TextureTarget.texture3D;
 	}
 
 	static Texture3D create(ColorFormat format, ColorType type, 
@@ -269,17 +255,14 @@ final class Texture3D : Texture
 
 final class Texture2DArray : Texture 
 {
+	enum target = TextureTarget.texture2DArray;
+
 	const uint width, height, layers;
 	this(uint glName, uint width, uint height, uint layers) {
 		super(glName);	
 		this.width = width;
 		this.height = height;
 		this.layers = layers;
-	}
-
-	override TextureTarget target() @property 
-	{ 
-		return TextureTarget.texture2DArray; 
 	}
 
 	static Texture2DArray create(ColorFormat format, ColorType type, 
@@ -311,18 +294,14 @@ final class Texture2DArray : Texture
 
 final class MultisampleTexture2D : Texture
 {
-	const uint samples, width, height;
+	enum target = TextureTarget.texture2DMultisample;
 
+	const uint samples, width, height;
 	this(uint glName, uint samples, uint width, uint height) {
 		super(glName);	
 		this.width = width;
 		this.height = height;
 		this.samples = samples;
-	}
-
-	override TextureTarget target() @property 
-	{
-		return TextureTarget.texture2DMultisample;
 	}
 
 	static MultisampleTexture2D create(InternalFormat internalFormat,
@@ -341,6 +320,7 @@ final class MultisampleTexture2D : Texture
 
 final class MultisampleTexture2DArray : Texture
 {
+	enum target = TextureTarget.texture2DMultisampleArray;
 	const uint samples, width, height, layers;
 
 	this(uint glName, uint samples, uint width, uint height, uint layers) {
@@ -349,12 +329,6 @@ final class MultisampleTexture2DArray : Texture
 		this.height = height;
 		this.samples = samples;
 		this.layers = layers;
-	}
-
-
-	override TextureTarget target() @property 
-	{ 
-		return TextureTarget.texture2DMultisampleArray;
 	}
 
 	static MultisampleTexture2DArray create(InternalFormat internalFormat,
@@ -373,14 +347,10 @@ final class MultisampleTexture2DArray : Texture
 
 final class BufferTexture : Texture
 {
+	enum target = TextureTarget.textureBuffer;
 	
 	this(uint glName) {
 		super(glName);	
-	}
-
-	override TextureTarget target() @property 
-	{ 
-		return TextureTarget.textureBuffer;
 	}
 
 	static BufferTexture create(TextureBuffer buffer, InternalFormat format) 

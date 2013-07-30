@@ -289,6 +289,7 @@ class PngLoader
 						  ihdr.colorType == CT.grayscaleAlpha ||
 						  ihdr.colorType == CT.rgb				  ||
 						  ihdr.colorType == CT.rgba);
+				break;
 			case 8:
 				break;
 			default :
@@ -306,20 +307,14 @@ class PngLoader
 		{
 			case CT.grayscale :
 				return bitsPerChannel < 8 ? 1 : 2;
-				break;
 			case CT.grayscaleAlpha :
 				return bitsPerChannel == 8 ? 2 : 4;
-				break;
 			case CT.rgb :
 				return bitsPerChannel == 8 ? 3 : 6;
-				break;
 			case CT.rgba :
 				return bitsPerChannel == 8 ? 4 : 8;
-				break;
 			case CT.palette :
 				return 1;
-				break;
-
 			default: 
 				throw new Exception("PNG IHDR chunk corrupted " ~ to!string(ihdr));
 		}

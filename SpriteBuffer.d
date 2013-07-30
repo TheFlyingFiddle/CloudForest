@@ -17,13 +17,13 @@ import font;
 
 final class SpriteBuffer 
 {
-	private VBO		 vbo;
-	private VAO		 vao;
-	private Program program;
+	private VBO	vbo;
+	private VAO vao;
+
+	private static Program program;
 
 	private Vertex[]	  vertices;
 	private Texture2D[] textures;
-
 
 	private struct Vertex
 	{
@@ -40,30 +40,33 @@ final class SpriteBuffer
 	this(uint size, BufferHint hint = BufferHint.streamDraw) 
 	{
 		size	    = size;
-		vao		 = new VAO();
 		vbo		 = new VBO(hint);
 		vertices  = new Vertex[size];
 		textures  = new Texture2D[size];
+		vao		 = new VAO();
 		elements  = 0;
 
-		gl.vertexBuffer = vbo;
+		gl.vbo = vbo;
 		vbo.initialize(size * Vertex.sizeof);
 
 		auto gShader = new Shader(ShaderType.geometry, gs),
 			  vShader = new Shader(ShaderType.vertex, vs),
 			  fShader = new Shader(ShaderType.fragment, fs);
 
-		program = new Program(gShader, vShader, fShader);
-		gl.program = program;
-		program.uniform["sampler"] = 0;
+		if(program is null) {
+			program = new Program(gShader, vShader, fShader);
 
-		gShader.destroy();
-		vShader.destroy();
-		fShader.destroy();
+			gl.program = program;
+			program.uniform["sampler"] = 0;
 
-		gl.vertexArray = vao;
+			gShader.destroy();
+			vShader.destroy();
+			fShader.destroy();
+		}
+
+
+		gl.vao = vao;
 		vao.bindAttributesOfType!Vertex(program);
-
 	}
 
 	
@@ -82,16 +85,19 @@ final class SpriteBuffer
 		if(mirror) {
 			swap(coords.x, coords.z);
 		}
-		
-		vertices[elements] = Vertex(float4(pos.x, pos.y, scale.x, scale.y),
-										  coords,
-										  origin,
-										  color,
-										  rotation);
+
+		float2 dim = float2(frame.dim.x * scale.x, frame.dim.x * scale.y);
+		vertices[elements] = Vertex(float4(pos.x, pos.y, dim.x, dim.y),
+													  coords,
+													  origin,
+													  color,
+													  rotation);
 
 		textures[elements++] = frame.texture;
 		return this;
 	}
+
+
 
 	SpriteBuffer addText(Font font,
 								const (char)[] text, 
@@ -109,9 +115,12 @@ final class SpriteBuffer
 		float2 cursor = float2(0,0);
 		foreach(wchar c; text)
 		{
-			if(c == ' ') 
+			auto cc = cursor;
+			if(c == ' ') {
+				CharInfo spaceInfo = font[' '];
+				cursor.x += spaceInfo.advance * scale.x;
 				continue;
-			else if(c == '\n') {
+			}	else if(c == '\n') {
 				cursor.y -= font.lineHeight * scale.y;
 				cursor.x = -origin.x * scale.x;
 				continue;
@@ -122,13 +131,15 @@ final class SpriteBuffer
 			}
 
 			CharInfo info = font[c];
-			float4 pos = float4(pos.x + cursor.x,
-									  pos.y + cursor.y,
-									  scale.x, scale.y);
+			float4 pos = float4(pos.x,
+									  pos.y,
+									  scale.x * info.srcRect.z, 
+									  scale.y * info.srcRect.w);
 			
 			vertices[elements++] = Vertex(pos, 
 												 info.textureCoords,
-												 origin,
+												 float2(-origin.x - cursor.x,
+														  -origin.y - cursor.y),
 												 color,
 												 rotation);
 
@@ -140,7 +151,7 @@ final class SpriteBuffer
 
 	SpriteBuffer flush()
 	{
-		gl.vertexBuffer = vbo;
+		gl.vbo = vbo;
 		vbo.bufferSubData(vertices[0 .. elements], 0);
 		return this;
 	}
@@ -155,9 +166,8 @@ final class SpriteBuffer
 	{
 		if(elements == 0) return this;
 
-		gl.vertexBuffer = vbo;
-		gl.vertexArray  = vao;
-		gl.program		 = program;
+		gl.vao		= vao;
+		gl.program	= program;
 
 		program.uniform["transform"] = transform.transpose;
 
@@ -178,7 +188,7 @@ final class SpriteBuffer
 			count++;
 		}
 		
-		gl.textures[0] = textures[$ - 1];
+		gl.textures[0] = textures[elements - 1];
 		gl.drawArrays(PrimitiveType.points, offset, count);
 		return this;
 	}
@@ -195,6 +205,7 @@ in float rotation;
 
 out vertexAttrib
 { 
+	vec4	pos;
 	vec4  texCoord;
 	vec4  color;
 	vec2  origin;
@@ -203,7 +214,7 @@ out vertexAttrib
 
 void main() 
 {
-	gl_Position	    = pos;
+	vertex.pos		 = pos;
 	vertex.texCoord = texCoord;
 	vertex.color	 = color;
 	vertex.origin   = origin;
@@ -218,6 +229,7 @@ layout(triangle_strip, max_vertices = 4) out;
 
 in vertexAttrib
 {
+	vec4 pos;
 	vec4 texCoord;
 	vec4 color;
 	vec2 origin;
@@ -232,18 +244,18 @@ out vertData
 
 uniform mat4 transform;
 
-vec4 calcPos(in vec2 pos, in float sinus, in float cosinus)
+vec4 calcPos(in vec2 pos, in vec2 origin, in float sinus, in float cosinus)
 {
-	pos.x += vertex[0].origin.x * cosinus - vertex[0].origin.y * sinus;
-	pos.y += vertex[0].origin.x * sinus   + vertex[0].origin.y * cosinus;
+	pos.x += origin.x * cosinus - origin.y * sinus;
+	pos.y += origin.x * sinus   + origin.y * cosinus;
 	return vec4(pos, 0 , 1);
 }
 
-void emitCorner(in vec2 pos, in vec2 coord, in float sinus, in float cosinus)
+void emitCorner(in vec2 pos, in vec2 origin, in vec2 coord, in float sinus, in float cosinus)
 {
-	vertOut.texCoord = vertex[0].texCoord;
+	gl_Position		  = transform * calcPos(pos, origin, sinus, cosinus);
 	vertOut.color	  = vertex[0].color;
-	gl_Position		  = transform * calcPos(pos, sinus, cosinus);
+	vertOut.texCoord = coord;
 	EmitVertex();
 }
 
@@ -252,22 +264,25 @@ void main()
 	float sinus   = sin(vertex[0].rotation),
 			cosinus = cos(vertex[0].rotation);
 
-	vec4 pos = gl_in[0].gl_Position;
+	vec4 pos		  = vertex[0].pos;
 	vec4 texCoord = vertex[0].texCoord;
+	vec2 origin   = -vertex[0].origin;
 	
-	emitCorner(pos.xy, texCoord.xy, sinus, cosinus);
-	emitCorner(pos.xw, texCoord.xw, sinus, cosinus);
-	emitCorner(pos.zw, texCoord.zw, sinus, cosinus);
-	emitCorner(pos.zy, texCoord.zy, sinus, cosinus);
-	EndPrimitive();
+	emitCorner(pos.xy, origin							  , texCoord.xy, sinus, cosinus);
+	emitCorner(pos.xy, origin + vec2(0, pos.w)	  , texCoord.xw, sinus, cosinus);
+	emitCorner(pos.xy, origin + vec2(pos.z, 0)	  , texCoord.zy, sinus, cosinus);
+	emitCorner(pos.xy, origin + vec2(pos.z, pos.w) , texCoord.zw, sinus, cosinus);
 }
 ";
 
 enum fs =
 "#version 330
 
-in vec4 color;
-in vec2 texCoord;
+
+in vertData {
+	vec4 color;
+	vec2 texCoord;
+} vertIn;
 
 out vec4 fragColor;
 
@@ -275,6 +290,6 @@ uniform sampler2D sampler;
 
 void main()
 {
-	fragColor = texture2D(sampler, texCoord) * color;
+	fragColor = texture2D(sampler, vertIn.texCoord) * vertIn.color;
 }
 ";

@@ -52,7 +52,7 @@ void assertBound(T)(T glObject, string file = __FILE__, size_t line = __LINE__)
 				 format("\nIllegal to operate on non bound program!\nin file %s on line %s",
 						  file, line));	
 	} else static if(is(T == VertexArray)) {
-		assert(Context.vertexArray == glObject,
+		assert(Context.vao == glObject,
 				 format("\nIllegal to operate on non bound vertex array!\nin file %s on line %s",
 						  file, line));	
 	} else static if(is(object : Buffer)) {

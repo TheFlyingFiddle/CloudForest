@@ -21,7 +21,7 @@ class SpriteBufferExample : Example
 
 	this() 
 	{
-		buffer = new SpriteBuffer(512);
+		buffer = new SpriteBuffer(131072, BufferHint.streamDraw);
 		
 		font = Font.load("resources/test.fnt");
 		uint width, height;
@@ -34,27 +34,27 @@ class SpriteBufferExample : Example
 											No.generateMipMaps);
 
 		frame = Frame(texture);
+
+		gl.viewport = uint4(0,0, 512,512);
 	}
 
 	override void reshape(int w, int h) { }
 	int time = 0;
 	override void render(double time2) 
 	{
-		gl.clearColor(Color.black);
+		gl.clearColor(Color(0xFFae1182));
 		gl.clear(ClearFlags.color);
 
-		foreach(i; 0 .. 100) 
-		{
-			auto x = std.random.uniform(0, 500);
-			auto y = std.random.uniform(0, 500);
+		gl.enable(Capability.blend);
+		gl.blendState = BlendState.nonPremultiplied;
 
-			buffer.addFrame(frame, float2(x,y));
-		}
-		
-		mat4 proj = mat4.CreateOrthographic(0, 512,512,0,0,0);
+		buffer.addText(font, "HELLO WORLD!", float2(200,200), Color.white,
+							float2.one, float2.zero, 1f);
+		buffer.addFrame(Frame(font.page), float2.zero);
 		buffer.flush();
-		buffer.draw(proj);
 
+		mat4 proj = mat4.CreateOrthographic(0, 512,512,0,1,-1);
+		buffer.draw(proj);
 		buffer.clear();
 	}
 }

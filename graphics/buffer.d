@@ -80,7 +80,7 @@ class Buffer
 		glBufferData(buffer.target, size, null, buffer.hint);
 	}
 
-	package static void bufferSubData(T)(Buffer buffer, T data, uint unitOffset) if(isArray!T)
+	package static void bufferSubData(T)(Buffer buffer, T[] data, uint unitOffset) 
 		in { assertBound(buffer); }
 		out { assertNoGLError(); }
 	body

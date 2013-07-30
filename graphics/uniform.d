@@ -116,7 +116,7 @@ final class BufferUniform(T) if(isStd140Aligned!T) : BufferUniformBase
 	{
 		if(_data != data) {
 			_data = data;
-			Context.uniformBuffer = buffer;
+			Context.ubo = buffer;
 			buffer.bufferSubData!T(data, offset);
 		}
 	}

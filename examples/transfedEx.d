@@ -41,10 +41,10 @@ public class ParticleSystem : Example
 		vbos[0] = new VBO(BufferHint.streamDraw);
 		vbos[1] = new VBO(BufferHint.streamDraw);
 		
-		gl.vertexBuffer = vbos[0];
+		gl.vbo = vbos[0];
 		vbos[0].bufferData(particles);
 		
-		gl.vertexBuffer = vbos[1];
+		gl.vbo = vbos[1];
 		vbos[1].initialize(vbos[0].size);
 		
 		vao = new VAO();
@@ -69,10 +69,10 @@ public class ParticleSystem : Example
 
 	void updateParticles(float time) 
 	{
-		gl.vertexArray = this.vao;
+		gl.vao = this.vao;
 		gl.program = feedback;
 
-		gl.vertexBuffer = vbos[0];
+		gl.vbo = vbos[0];
 		vao.bindAttribute!float2(feedback.attribute["position"], Particle.sizeof, 0);
 		vao.bindAttribute!float2(feedback.attribute["velocity"], Particle.sizeof, float2.sizeof);
 		vao.bindAttribute!float4(feedback.attribute["color"], Particle.sizeof, float4.sizeof);
@@ -95,8 +95,8 @@ public class ParticleSystem : Example
 		gl.clear(ClearFlags.color);
 
 		gl.program = renderp;
-		gl.vertexArray = vao;
-		gl.vertexBuffer = vbos[0];
+		gl.vao = vao;
+		gl.vbo = vbos[0];
 
 		vao.bindAttribute!float2(renderp.attribute["position"], Particle.sizeof, 0);
 		vao.bindAttribute!float2(renderp.attribute["velocity"], Particle.sizeof, float2.sizeof);
