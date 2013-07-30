@@ -1,17 +1,21 @@
 module graphics.program;
 
+import utils.assertions;
+
+import math.vector;
+import math.matrix;
+
 import graphics.shader;
 import graphics.errors;
 import graphics.common;
 import graphics.vertex;
 import graphics.context;
 import graphics.color;
+import graphics.enums;
+
 import std.traits : isArray;
 import std.algorithm : find, remove, countUntil;
-import math.vector;
-import utils.assertions;
 import derelict.opengl3.gl3;
-import graphics.enums;
 
 
 struct UniformBlockInfo
@@ -576,6 +580,11 @@ final class Program
 	private void flushUniform(int loc, float4[] value)
 	{
 		glUniform4fv(loc, value.length, cast(float*)value.ptr);
+	}
+
+	private void flushUniform(int loc, in mat4 matrix)
+	{
+		glUniformMatrix4fv(loc, 1, GL_FALSE, matrix.ptr);
 	}
 }
 

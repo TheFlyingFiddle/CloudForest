@@ -149,7 +149,7 @@ final class Texture1D : Texture
 
 final class Texture2D : Texture
 {
-	const uint width, height;
+	public const uint width, height;
 	this(uint glName, uint width, uint height) {
 		super(glName);	
 		this.width = width;

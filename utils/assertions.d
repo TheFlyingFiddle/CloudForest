@@ -43,7 +43,7 @@ void assertThrows(T)(void delegate(void) throwing,  string file = __FILE__, int 
 void assertNotImplemented(lazy const(char)[] feature = null, string file = __FILE__, int line = __LINE__)
 {
 	if(feature)
-		assert(false, format("Feature %s is not yet implemented"));
+		assert(false, format("Feature %s is not yet implemented", feature()));
 	else 
 		assert(false, "Not yet implemented!");
 }

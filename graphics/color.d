@@ -87,10 +87,10 @@ struct Color
 	alias toVector4 this;
 
 
-	enum Color Transparent = Color(0);
-	enum Color Black = Color(0xFF000000);
-	enum Color White = Color(0xFFFFFFFF);
-	enum Color Blue = Color(0xFFFF0000);
-	enum Color Green = Color(0xFF00FF00);
-	enum Color Red = Color(0xFF0000FF);
+	enum Color transparent = Color(0);
+	enum Color black = Color(0xFF000000);
+	enum Color white = Color(0xFFFFFFFF);
+	enum Color blue = Color(0xFFFF0000);
+	enum Color green = Color(0xFF00FF00);
+	enum Color red = Color(0xFF0000FF);
 }

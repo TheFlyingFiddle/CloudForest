@@ -42,7 +42,7 @@
   <pic>0</pic>
   <cov>0</cov>
   <nofloat>0</nofloat>
-  <Dversion>2</Dversion>
+  <Dversion>2.043</Dversion>
   <ignoreUnsupportedPragmas>0</ignoreUnsupportedPragmas>
   <compiler>0</compiler>
   <otherDMD>0</otherDMD>
@@ -84,12 +84,12 @@
   <objfiles />
   <linkswitches />
   <libfiles>DerelictGL3.lib DerelictGLFW3.lib DerelictUtil.lib</libfiles>
-  <libpaths>C:\Users\Gustav\Documents\GitHub\Derelict3\lib\dmd</libpaths>
+  <libpaths>C:\Derelict3\lib</libpaths>
   <deffile />
   <resfile />
   <exefile>$(OutDir)\$(ProjectName).exe</exefile>
   <useStdLibPath>1</useStdLibPath>
-  <additionalOptions>-IC:\Users\Gustav\Documents\GitHub\Derelict3\import</additionalOptions>
+  <additionalOptions />
   <preBuildCommand />
   <postBuildCommand />
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
@@ -196,6 +196,7 @@
    <File path="examples\mandelbrotExample.d" />
    <File path="examples\newtonExample.d" />
    <File path="examples\rectangleExample.d" />
+   <File path="examples\spriteBufferEx.d" />
    <File path="examples\texturedEx.d" />
    <File path="examples\transfedEx.d" />
    <File path="examples\triangleExample.d" />
@@ -226,6 +227,9 @@
    <File path="utils\assertions.d" />
    <File path="utils\image.d" />
   </Folder>
+  <File path="font.d" />
+  <File path="frame.d" />
   <File path="main.d" />
+  <File path="SpriteBuffer.d" />
  </Folder>
 </DProject>

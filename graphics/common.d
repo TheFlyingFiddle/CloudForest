@@ -5,7 +5,7 @@ import math.vector;
 import graphics.color;
 
 //Does not work with shader souces > 512 should fix.
-static char[512] c_buffer;
+static char[1024] c_buffer;
 
 char* toCString(const char[] str, char[] output = c_buffer) 
 {
@@ -47,7 +47,7 @@ template glUnitSize(T) {
 		enum glUnitSize = 2;
 	} else static if(isInstanceOf!(Vector3, T)) {
 		enum glUnitSize = 3;
-	} else static if(isInstanceOf!(Vector4, T)) {
+	} else static if(isInstanceOf!(Vector4, T) || is(T == Color)) {
 		enum glUnitSize = 4;
 	} else {
 		static assert(false, "Not Yet implemented");
@@ -70,11 +70,11 @@ template glType(T)
 		enum glType = GL_FLOAT;
 	} else static if(isIntVec!T) {
 		enum glType = GL_INT;
-   } else static if(isUintVec!T) {
-		enum glType = GL_UNSIGNED_INT;
-	} else static if(is(T == Color)) {
+   } else static if(is(T == Color)) {
 		enum glType = GL_UNSIGNED_BYTE;
-	} else {
+	} else static if(isUintVec!T) {
+		enum glType = GL_UNSIGNED_INT;
+	} else  {
 		static assert(false, "Not Yet implemented");
 	}
 }

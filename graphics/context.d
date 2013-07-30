@@ -19,7 +19,7 @@ import math.vector;
 import math.vector;
 public import std.algorithm, std.typecons : Flag, Yes, No;
 
-
+alias Context gl;
 struct Context
 {
 	///These are used to track bound objects.

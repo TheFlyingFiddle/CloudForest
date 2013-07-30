@@ -102,10 +102,10 @@ class VertexArray
 	out { assertNoGLError(); }
 	body
 	{
-		int offset = 0;
+		uint offset = 0;
 		foreach(i, trait; FieldTypeTuple!T) {
 			enum name = __traits(allMembers, T)[i];
-			enableAttrib(name, T.sizeof, offset);
+			bindAttribute!trait(program.attribute[name], T.sizeof, offset);
 			offset += trait.sizeof;
 		}
 	}

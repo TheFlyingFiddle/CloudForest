@@ -25,6 +25,7 @@ void main(string[] argv)
 		examples ~= new BlobEx();
 		examples ~= new TextureExample();
 		examples ~= new ParticleSystem();
+	//	examples ~= new SpriteBufferExample();
 
 
 		int activeExample = examples.length - 1;	

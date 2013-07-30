@@ -211,7 +211,7 @@ class PngLoader
 		scanlineCount = 0;
 	}
 
-	void[] load(string file, out uint width, out uint height, bool performValidation = true) 
+	void[] load(const (char)[] file, out uint width, out uint height, bool performValidation = true) 
 	{
 		ubyte[] bytes = cast(ubyte[])read(file);
 		setup();
