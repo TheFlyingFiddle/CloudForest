@@ -55,11 +55,9 @@ template glUnitSize(T) {
 }
 
 unittest{
-	import std.stdio;
-	writeln(glUnitSize!float3);
-	writeln(glUnitSize!uint4);
-	writeln(glUnitSize!float2);
-	writeln(float2.sizeof);
+	assert(glUnitSize!float3==3);
+	assert(glUnitSize!uint4==4);
+	assert(glUnitSize!float2==2);
 }
 
 template glNormalized(T) 

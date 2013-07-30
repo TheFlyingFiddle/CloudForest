@@ -42,7 +42,7 @@ class MandelbrotExample : Example
 		import std.stdio;
 		writeln(colorMap);
 		
-		program.uniform["clrs[0]"] = colorMap;
+		program.uniform["clrs"] = colorMap;
 
 		std.stdio.writeln(program.uniforms);
 	}
