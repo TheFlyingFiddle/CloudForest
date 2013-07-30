@@ -10,7 +10,8 @@ import graphics.all;
 import utils.image;
 
 
-void main(string[] argv)
+version(unittest) void main() {readln();}
+else void main(string[] argv)
 {
 	try {
 		loadSharedLibs();
