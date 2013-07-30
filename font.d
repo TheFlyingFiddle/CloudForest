@@ -71,7 +71,7 @@ class Font
 
 	float2 messureString(string toMessure)
 	{
-		float2 size = float2.zero;
+		float2 size = float2(0,0);
 		float cursorX = 0;
 
 		foreach(i, elem; toMessure)

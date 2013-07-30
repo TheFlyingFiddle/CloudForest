@@ -105,10 +105,10 @@ struct Matrix4(T) if (isNumeric!(T))
 						  0,0,1,0,
 						  0,0,0,1);
 
-	public Vector4!(T) row0;
-	public Vector4!(T) row1;
-	public Vector4!(T) row2;
-	public Vector4!(T) row3;
+	public Vector!(4,T) row0;
+	public Vector!(4,T) row1;
+	public Vector!(4,T) row2;
+	public Vector!(4,T) row3;
 
 	@property ref T m00() { return row0.x; }
 	@property ref T m01() { return row0.y; }
@@ -153,7 +153,7 @@ struct Matrix4(T) if (isNumeric!(T))
 			- row0.w * row1.y * row2.z * row3.x + row0.w * row1.y * row2.x * row3.z - row0.w * row1.z * row2.x * row3.y + row0.w * row1.z * row2.y * row3.x;
 	}
 
-	this(Vector4!(T) row0, Vector4!(T) row1, Vector4!(T) row2, Vector4!(T) row3)
+	this(Vector!(4,T) row0, Vector!(4,T) row1, Vector!(4,T) row2, Vector!(4,T) row3)
 	{
 		this.row0 = row0;
 		this.row1 = row1;
@@ -166,10 +166,10 @@ struct Matrix4(T) if (isNumeric!(T))
 		  T m20, T m21, T m22, T m23,
 		  T m30, T m31, T m32, T m33)
 	{
-		row0 = Vector4!(T)(m00, m01, m02, m03);
-		row1 = Vector4!(T)(m10, m11, m12, m13);
-		row2 = Vector4!(T)(m20, m21, m22, m23);
-		row3 = Vector4!(T)(m30, m31, m32, m33);
+		row0 = Vector!(4,T)(m00, m01, m02, m03);
+		row1 = Vector!(4,T)(m10, m11, m12, m13);
+		row2 = Vector!(4,T)(m20, m21, m22, m23);
+		row3 = Vector!(4,T)(m30, m31, m32, m33);
 	}
 
 
@@ -206,9 +206,9 @@ struct Matrix4(T) if (isNumeric!(T))
 		Mult(this, rhs, result);
 		return result;
 	}
-	Vector2!(T) opBinaryRight(string op)(Vector2!(T) rhs) if (op == "*")
+	Vector!(2,T) opBinaryRight(string op)(Vector!(2,T) rhs) if (op == "*")
 	{
-		return Vector2!(T)(m00 * rhs.x + m01 * rhs.y + m03,
+		return Vector!(2,T)(m00 * rhs.x + m01 * rhs.y + m03,
 								 m10 * rhs.x + m11 * rhs.y + m13);
 	}
 

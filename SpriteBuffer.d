@@ -70,8 +70,8 @@ final class SpriteBuffer
 	SpriteBuffer addFrame(Frame frame, 
 								 float2 pos,
 								 Color color = Color.white,
-								 float2 scale = float2.one,
-								 float2 origin = float2.zero, 
+								 float2 scale = float2(1,1),
+								 float2 origin = float2(0,0), 
 								 float rotation = 0,
 								 bool mirror = false)
 	{
@@ -96,9 +96,9 @@ final class SpriteBuffer
 	SpriteBuffer addText(Font font,
 								const (char)[] text, 
 								float2 pos,
-								Color color = Color.white,
-								float2 scale = float2.one,
-								float2 origin = float2.zero,
+						 Color color = Color.white,
+						 float2 scale = float2(1,1),
+						 float2 origin = float2(0,0), 
 								float rotation = 0)
 	{
 		if(elements + text.length > vertices.length)
@@ -106,7 +106,7 @@ final class SpriteBuffer
 
 		textures[elements .. elements + text.length] = font.page;
 
-		float2 cursor = float2.zero;
+		float2 cursor = float2(0,0);
 		foreach(wchar c; text)
 		{
 			if(c == ' ') 

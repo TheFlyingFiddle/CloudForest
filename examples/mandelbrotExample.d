@@ -34,11 +34,14 @@ class MandelbrotExample : Example
 		vertexArray.bindAttribute!float2(program.attribute["coord"], float2.sizeof * 2, float2.sizeof);
 
 		float4[5] colorMap = [ float4(0.4f, 0.2f, 1.0f, 0.0f),
-									  float4(1.0f, 0.2f, 0.2f, 0.30f),
+									  float4(1.0f, 0.92f, 0.2f, 0.30f),
 									  float4(1.0f, 1.0f, 1.0f, 0.95f),
 									  float4(1.0f, 1.0f, 1.0f, 0.98f),
 									  float4(0.1f, 0.1f, 0.1f, 1.0f)];
 
+		import std.stdio;
+		writeln(colorMap);
+		
 		program.uniform["clrs"] = colorMap;
 
 		std.stdio.writeln(program.uniforms);
@@ -82,7 +85,7 @@ void main()
 vec2 z = vec2(0.0, 0.0);
 	vec2 c = vertCoord;
 	int i = 0, max = 128;
-	while((i != max) && (distance(z, c) < 2.0)) 
+	while((i != max) && (distance(z, c) < 2.0f)) 
 	{
 		vec2 zn = vec2( z.x * z.x - z.y * z.y + c.x,
 		2.0 * z.x * z.y + c.y);

@@ -43,15 +43,21 @@ template isUintVec(T) {
 template glUnitSize(T) {
 	static if(isNumeric!T) {
 		enum glUnitSize = 1;
-	} else static if(isInstanceOf!(Vector2, T)) {
+	} else static if(is(T t == Vector!(2, U), U...)) {
 		enum glUnitSize = 2;
-	} else static if(isInstanceOf!(Vector3, T)) {
+	} else static if(is(T t == Vector!(3, U), U...)) {
 		enum glUnitSize = 3;
-	} else static if(isInstanceOf!(Vector4, T) || is(T == Color)) {
+	} else static if(is(T t == Vector!(4, U), U...) || is(T == Color)) {
 		enum glUnitSize = 4;
 	} else {
 		static assert(false, "Not Yet implemented");
 	}
+}
+
+unittest{
+	assert(glUnitSize!float3==3);
+	assert(glUnitSize!uint4==4);
+	assert(glUnitSize!float2==2);
 }
 
 template glNormalized(T) 
