@@ -10,14 +10,12 @@ import derelict.opengl3.gl3;
 final class Sampler 
 {
 	package const uint glName;
-	static Sampler create() 
+	this()
 	{
 		uint glName;
 		glGenSamplers(1, &glName);
-		auto sampler = new Sampler();
-		return sampler;
+		this.glName = glName;
 	}
-
 
 	void wrapT(WrapMode mode) @property
 		out { assertNoGLError(); }
@@ -143,6 +141,7 @@ final class Texture1D : Texture
 			glTexParameteri(texture.target, TextureParameter.maxLevel, 0);
 		else 
 			glGenerateMipmap(texture.target);
+
 
 		return texture;
 	}

@@ -14,6 +14,7 @@ class TextureExample : Example
 	private VertexArray vertexArray;
 	private VertexBuffer vertexBuffer;
 	private Texture texture;
+	private Sampler sampler;
 
 	this() 
 	{
@@ -37,13 +38,18 @@ class TextureExample : Example
 		vertexArray.bindAttribute!float2(program.attribute["position"], 0, 0);
 
 		uint width, height;
-		auto data = BmpLoader.load("resources/particles.bmp", width, height);
-		texture = Texture2D.create(ColorFormat.bgr, 
+		auto png = new PngLoader();
+		auto data = png.load("resources/PngTest.png", width, height);
+		texture = Texture2D.create(ColorFormat.rgba, 
 											ColorType.ubyte_, 
 											InternalFormat.rgba8,
 											width, height, data,
 											No.generateMipMaps);
 
+		sampler = new Sampler();
+
+		sampler.minFilter = TextureMinFilter.nearest;
+		sampler.magFilter = TextureMagFilter.nearest;
 
 	}
 
@@ -55,9 +61,8 @@ class TextureExample : Example
 		gl.vertexArray = vertexArray;
 
 		auto i = std.random.uniform(0, gl.getInteger(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS));
-		std.stdio.writeln(i);
 		gl.textures[i] = texture;
-		program.uniform["sampler"] = i;
+		gl.sampler[i] = sampler;
 
 
 		program.validate();

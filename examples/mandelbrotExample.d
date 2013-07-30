@@ -51,8 +51,6 @@ class MandelbrotExample : Example
 		gl.program = program;
 		gl.vertexArray = vertexArray;
 
-		program.validate();
-
 		gl.clearColor(Color(0, 1, 1f, 1));
 		gl.clear(ClearFlags.color);
 		gl.drawArrays(PrimitiveType.triangleStrip, 0, 4);

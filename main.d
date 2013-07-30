@@ -9,6 +9,7 @@ import example, examples.all;
 import graphics.all;
 import utils.image;
 
+
 void main(string[] argv)
 {
 	try {
@@ -60,7 +61,7 @@ auto openWindow()
 
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
-	auto window = glfwCreateWindow(800, 600, "Cloud Forest!", null, null);
+	auto window = glfwCreateWindow(512, 512, "Cloud Forest!", null, null);
 	if (!window) throw new Exception("Window failed to create");
 	glfwMakeContextCurrent(window);
 

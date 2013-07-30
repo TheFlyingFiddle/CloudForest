@@ -38,7 +38,6 @@ class TriangleExample : Example
 		gl.program = program;
 		gl.vertexArray = vertexArray;
 
-		program.validate();
 
 		gl.clearColor(Color(0, 1, 1f, 1));
 		gl.clear(ClearFlags.color);

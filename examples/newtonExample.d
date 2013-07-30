@@ -48,7 +48,6 @@ class NewtonExample : Example
 		gl.program = program;
 		gl.vertexArray = vertexArray;
 
-		program.validate();
 
 		gl.clearColor(Color(0, 0, 0, 0));
 		gl.clear(ClearFlags.color);
