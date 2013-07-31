@@ -1,32 +1,5 @@
 module utils.assertions;
 import std.string;
-import std.stdio;
-import std.conv;
-import core.exception;
-
-void printAssert(T)(T expr, string file = __FILE__, int line = __LINE__)
-{
-	try
-	{
-		assert(expr);
-	}
-	catch (AssertError e)
-	{
-		writeln(format("%s evaluated to false in file %s on line %s", to!string(expr), file, line));
-	}
-}
-
-void printAssertEquals(T)(T expected, T actual, string file = __FILE__, int line = __LINE__)
-{
-	try
-	{
-		assertEquals(expected, actual, file, line);
-	}
-	catch (AssertError e)
-	{
-		writeln(e);
-	}
-}
 
 void assertEquals(T)(T expected, T actual, string file = __FILE__, int line = __LINE__)
 {

@@ -8,10 +8,15 @@ public import derelict.util.exception;
 import example, examples.all;
 import graphics.all;
 import utils.image;
+import core.runtime;
 
+static this()
+{
+	if(!runModuleUnitTests())
+		readln();
+}
 
-version(unittest) void main() {readln();}
-else void main(string[] argv)
+void main(string[] argv)
 {
 	try {
 		loadSharedLibs();
