@@ -32,8 +32,12 @@ alias Vector2!(uint) uint2;
 alias Vector3!(uint) uint3;
 alias Vector4!(uint) uint4;
 
-struct Vector2(T)
+struct Vector2(T) if(isNumeric!T)
 {
+	
+	enum zero = Vector2!T(0,0);
+	enum one  = Vector2!T(1,1);
+
 	T x,y;
 
 	Vector2!T opBinary(string op)(Vector2!T rhs) if (op == "+" ||
@@ -72,8 +76,11 @@ struct Vector2(T)
 	}
 }
 
-struct Vector3(T)
+struct Vector3(T) if(isNumeric!T)
 {
+	enum zero = Vector3!T(0,0,0);
+	enum one  = Vector3!T(1,1,1);
+
 	T x, y, z;
 
 	Vector3!T opBinary(string op)(Vector3!T rhs) if (op == "+" ||
@@ -126,8 +133,11 @@ struct Vector3(T)
 	}
 }
 
-struct Vector4(T)
+struct Vector4(T) if(isNumeric!T)
 {
+	enum zero = Vector4!T(0,0,0,0);
+	enum one  = Vector4!T(1,1,1,1);
+
 	T x, y, z, w;
 
 	Vector4!T opBinary(string op)(Vector4!T rhs) if (op == "+" ||

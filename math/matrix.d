@@ -5,9 +5,11 @@ alias Matrix3 mat3;
 alias Matrix4 mat4;
 
 //Todo Add mat2x3 mat3x2 mat2x4 mat3x4 mat4x2 mat4x3 aswell (maby kinda annoying sometimes)
+import std.stdio;
 import math.vector;
 import std.math;
 import std.traits;
+import utils.assertions;
 
 
 
@@ -85,7 +87,7 @@ struct Matrix2
 
 	unittest {
 		auto result = Matrix2(1,3,2,4) * Matrix2(5,7,6,8);
-		assert(result == Matrix2(19, 43, 22, 50));
+		printAssert(result == Matrix2(19, 43, 22, 50));
 	}
 }
 
@@ -121,20 +123,36 @@ struct Matrix4
 
 	@property float determinant()
 	{          
-		return 1f;//return _rep[0] * _rep[5] * _rep[10] * _rep[15] - _rep[0] * _rep[5] * _rep[14] * _rep[11] + _rep[0] * _rep[9] * _rep[14] * _rep[7] - _rep[0] * _rep[9] * _rep[6] * _rep[15]
-		//+ _rep[0] * _rep[13] * _rep[6] * _rep[11] - _rep[0] * _rep[13] * _rep[10] * _rep[7] - _rep[4] * _rep[9] * _rep[14] * _rep[3] + _rep[4] * _rep[9] * _rep[2] * _rep[15]
-		//- _rep[4] * _rep[13] * _rep[2] * _rep[11] + _rep[4] * _rep[13] * _rep[10] * _rep[3] - _rep[4] * _rep[1] * _rep[10] * _rep[15] + _rep[4] * _rep[1] * _rep[14] * _rep[11]
-		//+ _rep[8] * _rep[13] * _rep[2] * _rep[7] - _rep[8] * _rep[13] * _rep[6] * _rep[3] + _rep[8] * _rep[1] * _rep[6] * _rep[15] - _rep[8] * _rep[1] * _rep[14] * _rep[7]
-		//+ _rep[8] * _rep[5] * _rep[14] * _rep[3] - _rep[8] * _rep[5] * _rep[2] * _rep[15] - _rep[12] * _rep[1] * _rep[6] * _rep[11] + _rep[12] * _rep[1] * _rep[10] * _rep[7]
-		//- _rep[12] * _rep[5] * _rep[10] * _rep[3] + _rep[12] * _rep[5] * _rep[2] * _rep[11] - _rep[12] * _rep[9] * _rep[2] * _rep[7] + _rep[12] * _rep[9] * _rep[6] * _rep[3];
+		return _rep[0] * _rep[5] * _rep[10] * _rep[15] - _rep[0] * _rep[5] * _rep[14] * _rep[11] + _rep[0] * _rep[9] * _rep[14] * _rep[7] - _rep[0] * _rep[9] * _rep[6] * _rep[15]
+		+ _rep[0] * _rep[13] * _rep[6] * _rep[11] - _rep[0] * _rep[13] * _rep[10] * _rep[7] - _rep[4] * _rep[9] * _rep[14] * _rep[3] + _rep[4] * _rep[9] * _rep[2] * _rep[15]
+		- _rep[4] * _rep[13] * _rep[2] * _rep[11] + _rep[4] * _rep[13] * _rep[10] * _rep[3] - _rep[4] * _rep[1] * _rep[10] * _rep[15] + _rep[4] * _rep[1] * _rep[14] * _rep[11]
+		+ _rep[8] * _rep[13] * _rep[2] * _rep[7] - _rep[8] * _rep[13] * _rep[6] * _rep[3] + _rep[8] * _rep[1] * _rep[6] * _rep[15] - _rep[8] * _rep[1] * _rep[14] * _rep[7]
+		+ _rep[8] * _rep[5] * _rep[14] * _rep[3] - _rep[8] * _rep[5] * _rep[2] * _rep[15] - _rep[12] * _rep[1] * _rep[6] * _rep[11] + _rep[12] * _rep[1] * _rep[10] * _rep[7]
+		- _rep[12] * _rep[5] * _rep[10] * _rep[3] + _rep[12] * _rep[5] * _rep[2] * _rep[11] - _rep[12] * _rep[9] * _rep[2] * _rep[7] + _rep[12] * _rep[9] * _rep[6] * _rep[3];
 	}
 
+	unittest
+	{
+		auto mat = mat4(
+							 1.000, 2.000, 3.000, 4.000,
+							 5.000, 6.000, 7.000, 8.000,
+							 9.000, 0.000, 1.000, 2.000,
+							 3.000, 4.000, 5.000, 6.000);
 
+		assertEquals(mat.determinant, 0f);
+
+		mat = mat4(
+					  4.500, 4.100, 6.700, 8.900,
+					  4.100, 9.800, 7.900, 7.600,
+					  1.200, 0.100, 4.500, 6.700,
+					  4.100, 3.400, 5.600, 7.800);
+		printAssert(approxEqual(mat.determinant, 19.247f));
+	}
 
 	///Constructor using column major arrays
 	this(float[16] arr)
 	{
-		//_rep = arr;
+		_rep = arr;
 	}
 
 	this(float f00, float f01, float f02, float f03,
@@ -158,26 +176,82 @@ struct Matrix4
 		_rep[m + n*4] = f;
 	}
 
+	unittest
+	{
+		mat4 mat = Matrix4.identity;
+		mat[1,3] = 5;
+		printAssertEquals(mat[1,3], mat._rep[13]);
+	}
+
 	Matrix4 opBinary(string op)(Matrix4 rhs) if(op == "+" || op == "-")
 	{
-		return identity;//return Matrix4(mixin("_rep[]"~op~"rhs._rep[]"));
+		return Matrix4(mixin("_rep[]"~op~"rhs._rep[]"));
 	}
 
 	Matrix4 opBinary(string op)(float rhs) if(op == "*")
 	{
-		return identity;//Matrix4(_rep[]*rhs);
+		return Matrix4(_rep[]*rhs);
 	}
 
 	Matrix4 opBinary(string op)(Matrix4 rhs) if (op == "*") 
 	{
-		Matrix4 result;
-		//Mult(this, rhs, result);
-		return result;
+		return mat4(
+						_rep[0]*rhs._rep[0]	+ _rep[4]*rhs._rep[1]	+ _rep[8]*rhs._rep[2]	+ _rep[12]*rhs._rep[3],
+						_rep[0]*rhs._rep[4]	+ _rep[4]*rhs._rep[5]	+ _rep[8]*rhs._rep[6]	+ _rep[12]*rhs._rep[7],
+						_rep[0]*rhs._rep[8]	+ _rep[4]*rhs._rep[9]	+ _rep[8]*rhs._rep[10]	+ _rep[12]*rhs._rep[11],
+						_rep[0]*rhs._rep[12]	+ _rep[4]*rhs._rep[13]	+ _rep[8]*rhs._rep[14]	+ _rep[12]*rhs._rep[15],
+
+						_rep[1]*rhs._rep[0]	+ _rep[5]*rhs._rep[1]	+ _rep[9]*rhs._rep[2]	+ _rep[13]*rhs._rep[3],
+						_rep[1]*rhs._rep[4]	+ _rep[5]*rhs._rep[5]	+ _rep[9]*rhs._rep[6]	+ _rep[13]*rhs._rep[7],
+						_rep[1]*rhs._rep[8]	+ _rep[5]*rhs._rep[9]	+ _rep[9]*rhs._rep[10]	+ _rep[13]*rhs._rep[11],
+						_rep[1]*rhs._rep[12]	+ _rep[5]*rhs._rep[13]	+ _rep[9]*rhs._rep[14]	+ _rep[13]*rhs._rep[15],
+
+						_rep[2]*rhs._rep[0]	+ _rep[6]*rhs._rep[1]	+ _rep[10]*rhs._rep[2]	+ _rep[14]*rhs._rep[3],
+						_rep[2]*rhs._rep[4]	+ _rep[6]*rhs._rep[5]	+ _rep[10]*rhs._rep[6]	+ _rep[14]*rhs._rep[7],
+						_rep[2]*rhs._rep[8]	+ _rep[6]*rhs._rep[9]	+ _rep[10]*rhs._rep[10]	+ _rep[14]*rhs._rep[11],
+						_rep[2]*rhs._rep[12]	+ _rep[6]*rhs._rep[13]	+ _rep[10]*rhs._rep[14]	+ _rep[14]*rhs._rep[15],
+
+						_rep[3]*rhs._rep[0]	+ _rep[7]*rhs._rep[1]	+ _rep[11]*rhs._rep[2]	+ _rep[15]*rhs._rep[3],
+						_rep[3]*rhs._rep[4]	+ _rep[7]*rhs._rep[5]	+ _rep[11]*rhs._rep[6]	+ _rep[15]*rhs._rep[7],
+						_rep[3]*rhs._rep[8]	+ _rep[7]*rhs._rep[9]	+ _rep[11]*rhs._rep[10]	+ _rep[15]*rhs._rep[11],
+						_rep[3]*rhs._rep[12]	+ _rep[7]*rhs._rep[13]	+ _rep[11]*rhs._rep[14]	+ _rep[15]*rhs._rep[15]);
 	}
 
-	Vector!(n,T) opBinaryRight(string op)(Vector!(n,T) rhs) if (op == "*")
+	unittest
 	{
-		Vector!(n,t) vec;
+		auto mat1 = mat4(
+					  4.500, 4.100, 6.700, 8.900,
+					  4.100, 9.800, 7.900, 7.600,
+					  1.200, 0.100, 4.500, 6.700,
+					  4.100, 3.400, 5.600, 7.800);
+		printAssertEquals(mat1, mat1*mat4.identity);
+		auto mat2 = mat4(
+							 1.000, 2.000, 3.000, 4.000,
+							 5.000, 6.000, 7.000, 8.000,
+							 9.000, 0.000, 1.000, 2.000,
+							 3.000, 4.000, 5.000, 6.000);
+
+		auto result = mat4(32.700,  37.600,  58.400,  75.400,
+								 88.300, 107.200, 157.200, 199.400,
+								 49.900,  43.800,  76.000, 102.400,
+								 60.500,  72.400, 107.800, 137.400);
+
+		printAssertEquals(mat2*mat1, result);
+	}
+
+	bool opEquals(mat4 rhs)
+	{
+		for(int i; i<16; i++)
+		{
+			if(!approxEqual(_rep[i], rhs._rep[i]))
+				return false;
+		}
+		return true;
+	}
+
+	Vector4!float opBinaryRight(string op)(Vector4!float rhs) if (op == "*")
+	{
+		Vector4!float vec;
 		foreach(i;0..n)
 		{
 			foreach(j;0..n)
@@ -185,11 +259,57 @@ struct Matrix4
 				vec[i] += vec[j]*_rep[i,j];
 			}
 		}
-		return vec;
-		//return mixin(iota(n).map!(i =>("vec[i] = "~
-		//				iota(n).map!(j =>("_rep[i,j] 																	
+		return vec;															
 	}
 
+	@property Matrix4 inverse()
+	in
+	{
+		assert(this.determinant);
+	}
+	body
+	{
+		mat4 inv;
+		inv._rep[ 0] =  _rep[5] * _rep[10] * _rep[15] - _rep[5] * _rep[11] * _rep[14] - _rep[9] * _rep[6] * _rep[15] + _rep[9] * _rep[7] * _rep[14] + _rep[13] * _rep[6] * _rep[11] - _rep[13] * _rep[7] * _rep[10];
+		inv._rep[ 4] = -_rep[4] * _rep[10] * _rep[15] + _rep[4] * _rep[11] * _rep[14] + _rep[8] * _rep[6] * _rep[15] - _rep[8] * _rep[7] * _rep[14] - _rep[12] * _rep[6] * _rep[11] + _rep[12] * _rep[7] * _rep[10];
+		inv._rep[ 8] =  _rep[4] * _rep[ 9] * _rep[15] - _rep[4] * _rep[11] * _rep[13] - _rep[8] * _rep[5] * _rep[15] + _rep[8] * _rep[7] * _rep[13] + _rep[12] * _rep[5] * _rep[11] - _rep[12] * _rep[7] * _rep[ 9];
+		inv._rep[12] = -_rep[4] * _rep[ 9] * _rep[14] + _rep[4] * _rep[10] * _rep[13] + _rep[8] * _rep[5] * _rep[14] - _rep[8] * _rep[6] * _rep[13] - _rep[12] * _rep[5] * _rep[10] + _rep[12] * _rep[6] * _rep[ 9];
+		inv._rep[ 1] = -_rep[1] * _rep[10] * _rep[15] + _rep[1] * _rep[11] * _rep[14] + _rep[9] * _rep[2] * _rep[15] - _rep[9] * _rep[3] * _rep[14] - _rep[13] * _rep[2] * _rep[11] + _rep[13] * _rep[3] * _rep[10];
+		inv._rep[ 5] =  _rep[0] * _rep[10] * _rep[15] - _rep[0] * _rep[11] * _rep[14] - _rep[8] * _rep[2] * _rep[15] + _rep[8] * _rep[3] * _rep[14] + _rep[12] * _rep[2] * _rep[11] - _rep[12] * _rep[3] * _rep[10];
+		inv._rep[ 9] = -_rep[0] * _rep[ 9] * _rep[15] + _rep[0] * _rep[11] * _rep[13] + _rep[8] * _rep[1] * _rep[15] - _rep[8] * _rep[3] * _rep[13] - _rep[12] * _rep[1] * _rep[11] + _rep[12] * _rep[3] * _rep[ 9];
+		inv._rep[13] =  _rep[0] * _rep[ 9] * _rep[14] - _rep[0] * _rep[10] * _rep[13] - _rep[8] * _rep[1] * _rep[14] + _rep[8] * _rep[2] * _rep[13] + _rep[12] * _rep[1] * _rep[10] - _rep[12] * _rep[2] * _rep[ 9];
+		inv._rep[ 2] =  _rep[1] * _rep[ 6] * _rep[15] - _rep[1] * _rep[ 7] * _rep[14] - _rep[5] * _rep[2] * _rep[15] + _rep[5] * _rep[3] * _rep[14] + _rep[13] * _rep[2] * _rep[ 7] - _rep[13] * _rep[3] * _rep[ 6];
+		inv._rep[ 6] = -_rep[0] * _rep[ 6] * _rep[15] + _rep[0] * _rep[ 7] * _rep[14] + _rep[4] * _rep[2] * _rep[15] - _rep[4] * _rep[3] * _rep[14] - _rep[12] * _rep[2] * _rep[ 7] + _rep[12] * _rep[3] * _rep[ 6];
+		inv._rep[10] =  _rep[0] * _rep[ 5] * _rep[15] - _rep[0] * _rep[ 7] * _rep[13] - _rep[4] * _rep[1] * _rep[15] + _rep[4] * _rep[3] * _rep[13] + _rep[12] * _rep[1] * _rep[ 7] - _rep[12] * _rep[3] * _rep[ 5];
+		inv._rep[14] = -_rep[0] * _rep[ 5] * _rep[14] + _rep[0] * _rep[ 6] * _rep[13] + _rep[4] * _rep[1] * _rep[14] - _rep[4] * _rep[2] * _rep[13] - _rep[12] * _rep[1] * _rep[ 6] + _rep[12] * _rep[2] * _rep[ 5];
+		inv._rep[ 3] = -_rep[1] * _rep[ 6] * _rep[11] + _rep[1] * _rep[ 7] * _rep[10] + _rep[5] * _rep[2] * _rep[11] - _rep[5] * _rep[3] * _rep[10] - _rep[ 9] * _rep[2] * _rep[ 7] + _rep[ 9] * _rep[3] * _rep[ 6];
+		inv._rep[ 7] =  _rep[0] * _rep[ 6] * _rep[11] - _rep[0] * _rep[ 7] * _rep[10] - _rep[4] * _rep[2] * _rep[11] + _rep[4] * _rep[3] * _rep[10] + _rep[ 8] * _rep[2] * _rep[ 7] - _rep[ 8] * _rep[3] * _rep[ 6];
+		inv._rep[11] = -_rep[0] * _rep[ 5] * _rep[11] + _rep[0] * _rep[ 7] * _rep[ 9] + _rep[4] * _rep[1] * _rep[11] - _rep[4] * _rep[3] * _rep[ 9] - _rep[ 8] * _rep[1] * _rep[ 7] + _rep[ 8] * _rep[3] * _rep[ 5];
+		inv._rep[15] =  _rep[0] * _rep[ 5] * _rep[10] - _rep[0] * _rep[ 6] * _rep[ 9] - _rep[4] * _rep[1] * _rep[10] + _rep[4] * _rep[2] * _rep[ 9] + _rep[ 8] * _rep[1] * _rep[ 6] - _rep[ 8] * _rep[2] * _rep[ 5];
+
+		auto invDet = 1f/(_rep[0] * inv._rep[0] + _rep[1] * inv._rep[4] + _rep[2] * inv._rep[8] + _rep[3] * inv._rep[12]); //We don't want to recalculate the determinant completely
+
+		foreach(ref e; inv._rep)
+			 e *= invDet;
+		return inv;
+	}
+
+	unittest
+	{
+		auto mat1 = mat4(
+							  4.500, 4.100, 6.700, 8.900,
+							  4.100, 9.800, 7.900, 7.600,
+							  1.200, 0.100, 4.500, 6.700,
+							  4.100, 3.400, 5.600, 7.800);
+		auto inv = mat4(
+							 1.977409936,	 -0.326901296,	 -0.597275476,	 -1.424711909,
+							 -2.285971092,	  0.314328169,	  0.189687958,	  2.139146066,
+							 5.983665326,	 -0.411172418,	 -0.477882727,	 -6.016397020,
+							 -4.338923699,	  0.330018600,	  0.574363291,	  4.264108399);
+		
+
+		printAssertEquals(mat1.inverse, inv);
+	}
 
 	public static Matrix4 CreateRotationZ(float angle)
 	{
