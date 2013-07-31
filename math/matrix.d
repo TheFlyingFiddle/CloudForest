@@ -4,7 +4,7 @@ alias Matrix2 mat2;
 alias Matrix3 mat3;
 alias Matrix4 mat4;
 
-//Todo Add mat2x3 mat3x2 mat2x4 mat3x4 mat4x2 mat4x3 aswell (maby kinda annoying sometimes)
+//Todo Add mat2x3 mat3x2 mat2x4 mat3x4 mat4x2 mat4x3 aswell (maybe kinda annoying sometimes)
 import std.stdio;
 import math.vector;
 import std.math;
@@ -28,9 +28,15 @@ struct Matrix2
 		this._rep[3] = f11;
 	}
 
+	///Expects rep to be column major
+	this(float[4] rep)
+	{
+		this._rep = rep;
+	}
+
 	Matrix2 transpose() @property
 	{
-		return Matrix2(_rep[0], _rep[2], _rep[1], _rep[3]);
+		return Matrix2(_rep[0], _rep[1], _rep[2], _rep[3]);
 	}
 
 	float determinant() @property
@@ -41,17 +47,46 @@ struct Matrix2
 	Matrix2 inverse() @property
 	{
 		float invDet = 1.0f / determinant;
-		return Matrix2(_rep[3] * invDet, -_rep[1]* invDet, 
-							-_rep[2] * invDet, _rep[3] * invDet);
+		return Matrix2(_rep[3] * invDet, -_rep[2]* invDet, 
+							-_rep[1] * invDet, _rep[0] * invDet);
+	}
+
+	unittest
+	{
+		auto mat1 = mat2(4.1f,42.24f,
+							  6.1f,13.37f);
+		auto mat2 = mat1.inverse;
+		printAssertEquals(mat1*mat2, identity);
+	}
+
+	bool opEquals(Matrix2 rhs)
+	{
+		foreach(i;0..4)
+		{
+			if(!approxEqual(_rep[i], rhs._rep[i]))
+				return false;
+		}
+		return true;
 	}
 
 	Matrix2 opBinary(string op)(Matrix2 rhs) if(op == "*")
 	{
-		return Matrix2(	_rep[0] * rhs._rep[0] + _rep[1] * rhs._rep[2],
-							_rep[2] * rhs._rep[0] + _rep[3] * rhs._rep[2],
+		return Matrix2(rhs._rep[0] * _rep[0] + rhs._rep[1] * _rep[2],
+							rhs._rep[2] * _rep[0] + rhs._rep[3] * _rep[2],
 
-							_rep[0] * rhs._rep[1] + _rep[1] * rhs._rep[3],
-							_rep[2] * rhs._rep[1] + _rep[3] * rhs._rep[3]); 
+							rhs._rep[0] * _rep[1] + rhs._rep[1] * _rep[3],
+							rhs._rep[2] * _rep[1] + rhs._rep[3] * _rep[3]); 
+	}
+
+	unittest
+	{
+		auto m1 = mat2(3.4f, 1.3f,
+			2.6f, 9.8f);
+		auto m2 = mat2(0.1f, 4.5f,
+							  9.6f, 7.8f);
+		auto result = mat2(12.82f, 25.44f,
+			94.34f, 88.14f);
+		printAssertEquals(m1*m2, result);
 	}
 
 	Matrix2 opBinary(string op)(Matrix2 rhs) if(op == "+" || op == "-")
@@ -63,9 +98,23 @@ struct Matrix2
 							mixin("_rep[3]" ~ op ~ "rhs._rep[3]"));
 	}
 
+	unittest
+	{
+		auto m1 = mat2(3.4f, 1.3f,
+							2.6f, 9.8f);
+		auto m2 = mat2(0.1f, 4.5f,
+							9.6f, 7.8f);
+		auto result1 = mat2(3.5f,5.8f,
+								  12.2f, 17.6f);
+		auto result2 = mat2(3.3f, -3.2f,
+								  -7f, 2f);
+		printAssertEquals(m1 + m2, result1);
+		printAssertEquals(m1 - m2, result2);
+	}
+
 	Matrix2 opBinary(string op)(float value) if(s == "*")
 	{
-		return Matrix2(_rep[0] * value, _rep[2] * value, _rep[1] * value, _rep[3] * value);
+		return Matrix2(_rep[] *= value);
 	}
 
 	float2 opBinary(string op)(float2 rhs) if(op == "*")
@@ -74,20 +123,28 @@ struct Matrix2
 						  rhs.x * _rep[2] + rhs.y * _rep[3]);
 	}
 
+	unittest
+	{
+		float2 f = float2(4.3f, 5.1f);
+		printAssertEquals(f, identity*f);
+	}
+
 	static Matrix2 rotation(float angle) 
 	{
 		float s = sin(angle), c = cos(angle);
 		return Matrix2(c, -s, s, c);
 	}
 
+	unittest
+	{
+		auto rot = rotation(PI_2);
+		printAssertEquals(rot, mat2(0,-1,
+											 1,0));
+	}
+
 	static Matrix2 scale(float scale) 
 	{
 		return Matrix2(scale, 0, 0, scale);
-	}
-
-	unittest {
-		auto result = Matrix2(1,3,2,4) * Matrix2(5,7,6,8);
-		printAssert(result == Matrix2(19, 43, 22, 50));
 	}
 }
 
@@ -219,13 +276,13 @@ struct Matrix4
 
 	unittest
 	{
-		auto mat1 = mat4(
+		auto m1 = mat4(
 					  4.500, 4.100, 6.700, 8.900,
 					  4.100, 9.800, 7.900, 7.600,
 					  1.200, 0.100, 4.500, 6.700,
 					  4.100, 3.400, 5.600, 7.800);
-		printAssertEquals(mat1, mat1*mat4.identity);
-		auto mat2 = mat4(
+		printAssertEquals(m1, m1*mat4.identity);
+		auto m2 = mat4(
 							 1.000, 2.000, 3.000, 4.000,
 							 5.000, 6.000, 7.000, 8.000,
 							 9.000, 0.000, 1.000, 2.000,
@@ -236,12 +293,12 @@ struct Matrix4
 								 49.900,  43.800,  76.000, 102.400,
 								 60.500,  72.400, 107.800, 137.400);
 
-		printAssertEquals(mat2*mat1, result);
+		printAssertEquals(m2*m1, result);
 	}
 
 	bool opEquals(mat4 rhs)
 	{
-		for(int i; i<16; i++)
+		foreach(i;0..16)
 		{
 			if(!approxEqual(_rep[i], rhs._rep[i]))
 				return false;
