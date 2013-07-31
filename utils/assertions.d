@@ -1,12 +1,6 @@
 module utils.assertions;
 import std.string;
 
-void assertElementEquals(T, R)(T expected, T actual, string file = __FILE__, int line = __LINE__)
-{
-	//This is harder
-	assert(false);
-}
-
 void assertEquals(T)(T expected, T actual, string file = __FILE__, int line = __LINE__)
 {
 	assert(expected == actual, format("\nExpected: %s\nActual: %s in file %s on line %s", 
