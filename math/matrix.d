@@ -322,6 +322,15 @@ struct Matrix4
 							0,  0, 0, 1);
 	}
 
+	unittest
+	{
+		printAssertEquals(CreateRotationZ(PI), 
+								mat4(-1,0,0,0,
+										0,-1,0,0,
+										0,0,1,0,
+										0,0,0,1));
+	}
+
 	public static Matrix4 CreateRotationX(float angle)
 	{
 		float s = sin(angle);
@@ -333,6 +342,15 @@ struct Matrix4
 							0, 0,  0, 1);
 	}
 
+	unittest
+	{
+		printAssertEquals(CreateRotationX(PI), 
+								mat4(1,0,0,0,
+									  0,-1,0,0,
+									  0,0,-1,0,
+									  0,0,0,1));
+	}
+
 	public static Matrix4 CreateRotationY(float angle)
 	{
 		float s = sin(angle);
@@ -342,6 +360,15 @@ struct Matrix4
 							0, 1, 0, 0,
 							-s, 0, c, 0,
 							0, 0, 0, 1);
+	}
+
+	unittest
+	{
+		printAssertEquals(CreateRotationY(PI), 
+								mat4(-1,0,0,0,
+									  0,1,0,0,
+									  0,0,-1,0,
+									  0,0,0,1));
 	}
 
 	public static Matrix4 CreateRotation(float x, float y, float z)
@@ -357,6 +384,18 @@ struct Matrix4
 
 	}
 
+	unittest
+	{
+		float xAngle = 1.312f, yAngle = 5.245f, zAngle = 3.415;
+		auto rotX = CreateRotationX(xAngle);
+		auto rotY = CreateRotationY(yAngle);
+		auto rotZ = CreateRotationZ(zAngle);
+		
+		auto rotXYZ = rotX*rotY*rotZ;
+
+		printAssertEquals(CreateRotation(xAngle, yAngle, zAngle), rotXYZ);
+	}
+
 	public static Matrix4 CreateScale(float x, float y, float z)
 	{
 		return Matrix4( x, 0, 0, 0,
@@ -365,11 +404,37 @@ struct Matrix4
 							0, 0, 0, 1);
 	}
 
+	unittest
+	{
+		float x = 1.4f, y = 4.5f, z = 18.41f;
+		auto mat = Matrix4(	x, 0, 0, 0,
+									0, y, 0, 0,
+									0, 0, z, 0,
+									0, 0, 0, 1);
+		printAssertEquals(CreateScale(x,y,z), mat);
+	}
+
 	public static Matrix4 CreateOrthographic(float left, float right, float top, float bottom, float near, float far)
 	{
 		return Matrix4(2 / (right - left), 0, 0, -(right + left) / (right - left),
 							0, 2 / (top - bottom), 0 , -(top + bottom) / (top - bottom),
 							0, 0, -2 / (far - near), -(far + near) / (far - near),
 							0, 0, 0, 1);
+	}
+
+	public static Matrix4 CreateInvOrthographic(float left, float right, float top, float bottom, float near, float far)
+	{
+		return Matrix4((right - left)/2, 0, 0, (right + left)/2,
+							0, (top - bottom)/2, 0 , (top + bottom)/2,
+							0, 0, (far - near)/(-2), (far + near)/(-2),
+							0, 0, 0, 1);
+	}
+
+	unittest
+	{
+		float left = 1.31f, right = 21.3f, top = 4.234f, bottom = 3.14f, near = 42.213f, far = 14.12f;
+		auto orto = CreateOrthographic(left, right, top, bottom, near, far);
+		auto inv = CreateInvOrthographic(left, right, top, bottom, near, far);
+		printAssertEquals(orto * inv, identity);
 	}
 }
