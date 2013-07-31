@@ -282,12 +282,12 @@ struct Matrix3
 		return true;
 	}
 
-	Vector4!float opBinaryRight(string op)(Vector4!float rhs) if (op == "*")
+	Vector3!float opBinaryRight(string op)(Vector3!float rhs) if (op == "*")
 	{
-		Vector4!float vec;
-		foreach(i;0..n)
+		Vector3!float vec;
+		foreach(i;0..3)
 		{
-			foreach(j;0..n)
+			foreach(j;0..3)
 			{
 				vec[i] += vec[j]*_rep[i,j];
 			}
