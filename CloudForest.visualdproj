@@ -193,6 +193,7 @@
    <File path="examples\all.d" />
    <File path="examples\blobEx.d" />
    <File path="examples\example.d" />
+   <File path="examples\guiEx.d" />
    <File path="examples\mandelbrotExample.d" />
    <File path="examples\newtonExample.d" />
    <File path="examples\rectangleExample.d" />
@@ -230,6 +231,7 @@
   </Folder>
   <File path="font.d" />
   <File path="frame.d" />
+  <File path="gui.d" />
   <File path="main.d" />
   <File path="SpriteBuffer.d" />
  </Folder>

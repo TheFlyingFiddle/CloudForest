@@ -125,12 +125,13 @@ class Font
 		int id;
 
 		auto loader = new PngLoader();
-		uint width, height;
-		auto imageData = loader.load(setExtension(fontPath, ".png"), width, height);
-		page = Texture2D.create(ColorFormat.rgba, 
-										ColorType.ubyte_, 
+		auto image = loader.load(setExtension(fontPath, ".png"));
+		page = Texture2D.create(image.format, 
+										image.type, 
 										InternalFormat.rgba8,
-										width, height, imageData,
+										image.width, 
+										image.height, 
+										image.data,
 										No.generateMipMaps);
 
 		foreach(line; std.stdio.File(fontPath).byLine())

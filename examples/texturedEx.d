@@ -37,13 +37,14 @@ class TextureExample : Example
 		vertexBuffer.bufferData(triangle);
 		vertexArray.bindAttribute!float2(program.attribute["position"], 0, 0);
 
-		uint width, height;
 		auto png = new PngLoader();
-		auto data = png.load("resources/PngTest.png", width, height);
-		texture = Texture2D.create(ColorFormat.rgba, 
-											ColorType.ubyte_, 
+		auto image = png.load("resources/PngTest.png");
+		texture = Texture2D.create(image.format, 
+											image.type, 
 											InternalFormat.rgba8,
-											width, height, data,
+											image.width, 
+											image.height, 
+											image.data,
 											No.generateMipMaps);
 
 		sampler = new Sampler();

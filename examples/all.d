@@ -8,3 +8,4 @@ public import examples.blobEx;
 public import examples.texturedEx;
 public import examples.transfedEx;
 public import examples.spriteBufferEx;
+public import examples.guiEx;

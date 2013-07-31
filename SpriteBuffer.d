@@ -49,11 +49,12 @@ final class SpriteBuffer
 		gl.vbo = vbo;
 		vbo.initialize(size * Vertex.sizeof);
 
-		auto gShader = new Shader(ShaderType.geometry, gs),
-			  vShader = new Shader(ShaderType.vertex, vs),
-			  fShader = new Shader(ShaderType.fragment, fs);
 
 		if(program is null) {
+			auto gShader = new Shader(ShaderType.geometry, gs),
+				  vShader = new Shader(ShaderType.vertex, vs),
+			     fShader = new Shader(ShaderType.fragment, fs);
+			
 			program = new Program(gShader, vShader, fShader);
 
 			gl.program = program;
@@ -70,6 +71,31 @@ final class SpriteBuffer
 	}
 
 	
+	SpriteBuffer addFrame(Frame frame,
+								 float4 rect,
+								 Color color = Color.white,
+								 float2 origin = float2.zero,
+								 float rotation = 0,
+								 bool mirror = false)
+	{
+		if(elements > vertices.length)
+			throw new Exception("SpriteBuffer full");
+
+		float4 coords = frame.coords;
+		if(mirror) {
+			swap(coords.x, coords.z);
+		}
+
+		vertices[elements] = Vertex(rect,
+											 coords,
+											 origin,
+											 color,
+											 rotation);
+
+		textures[elements++] = frame.texture;
+		return this;
+	}
+
 	SpriteBuffer addFrame(Frame frame, 
 								 float2 pos,
 								 Color color = Color.white,
@@ -111,7 +137,7 @@ final class SpriteBuffer
 			throw new Exception("SpriteBuffer full");
 
 		textures[elements .. elements + text.length] = font.page;
-
+		
 		float2 cursor = float2(0,0);
 		foreach(wchar c; text)
 		{
@@ -170,9 +196,6 @@ final class SpriteBuffer
 		gl.program	= program;
 
 		program.uniform["transform"] = transform.transpose;
-
-		//gl.blendState	 = blendState;
-		
 		Texture2D texture = textures[0];
 		
 		uint count = 1;
@@ -183,6 +206,7 @@ final class SpriteBuffer
 				gl.textures[0] = texture;
 				gl.drawArrays(PrimitiveType.points, offset, count);
 				count = 1; offset = i;
+				texture = textures[i];
 				continue;
 			}
 			count++;

@@ -7,7 +7,8 @@ import std.file,
 		 std.conv,
 		 std.zlib,
 		 std.stream,
-		 std.exception;
+		 std.exception,
+		 graphics.enums;
 
 struct BmpHeader {
 	ubyte[2] id;
@@ -33,21 +34,26 @@ struct BmpHeader {
 class Image
 {
 	const uint width, height;
+	const ColorType   type;
+	const ColorFormat format;
+	const uint			channels;
+	const bool			flipCoords; 
 	ubyte[] data;
-	uint channels;
 
-	bool flipCoords;
 
-	this(uint width, uint height, uint channels, bool flipCoords) 
+
+	this(uint width, uint height, ColorType type, ColorFormat format, uint channels, bool flipCoords) 
 	{
 		this.width = width;
 		this.height = height;
 		this.channels = channels;
 		this.flipCoords = flipCoords;
+		this.type = type;
+		this.format = format;
 		this.data = new ubyte[width * height * channels];
 	}
 
-	auto row() 
+	private auto row() 
 	{
 		struct RowIndexer
 		{
@@ -211,7 +217,7 @@ class PngLoader
 		scanlineCount = 0;
 	}
 
-	void[] load(const (char)[] file, out uint width, out uint height, bool performValidation = true) 
+	Image load(const (char)[] file) 
 	{
 		ubyte[] bytes = cast(ubyte[])read(file);
 		setup();
@@ -224,10 +230,8 @@ class PngLoader
 			PngChunk chunk = parseChunk(ptr);
 			processChunk(chunk);
 		}
-	
-		width = this.width;
-		height = this.height;
-		return image.data;
+
+		return image;
 	}
 
 	void processChunk(ref PngChunk chunk) 
@@ -271,7 +275,37 @@ class PngLoader
 		//Scan lines are one byte larger to accomodate the filter byte.
 		scanLineSize++;
 		
-		image = new Image(width, height, channels, true);
+		ColorType type;
+		ColorFormat format;
+		final switch(ihdr.colorType) 
+		{
+			case PNGColorType.grayscale: 
+				format = format.red;
+				break;
+			case PNGColorType.grayscaleAlpha :
+				format = format.rg;
+				break;
+			case PNGColorType.rgb :
+				format = format.rgb;
+				break;
+			case PNGColorType.rgba :
+				format = format.rgba;
+				break;
+			case PNGColorType.palette :
+				assert(0);
+		}
+
+		if(bitsPerChannel < 8){
+			assert(0);
+		} else if(bitsPerChannel == 8){
+			type = type.ubyte_;
+		} else {
+			type = type.ushort_;
+		}
+
+
+
+		image = new Image(width, height, type, format, channels, true);
 	}
 
 	void validateIHDR(in IHDR ihdr, in PngChunk chunk)

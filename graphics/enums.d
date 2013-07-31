@@ -548,7 +548,7 @@ enum ColorFormat
 	red = GL_RED,
 	green = GL_GREEN,
 	blue = GL_BLUE,
-	rb = GL_RG,
+	rg = GL_RG,
 	rgb = GL_RGB,
 	bgr = GL_BGR,
 	rgba = GL_RGBA,
