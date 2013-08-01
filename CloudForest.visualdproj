@@ -202,6 +202,12 @@
    <File path="examples\transfedEx.d" />
    <File path="examples\triangleExample.d" />
   </Folder>
+  <Folder name="entity">
+   <File path="enitity.d" />
+   <File path="physicssystem.d" />
+   <File path="rendersystem.d" />
+   <File path="system.d" />
+  </Folder>
   <Folder name="graphics">
    <File path="graphics\all.d" />
    <File path="graphics\buffer.d" />

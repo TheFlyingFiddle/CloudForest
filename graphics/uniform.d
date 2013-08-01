@@ -144,8 +144,6 @@ final class BufferUniform(T) if(isStd140Aligned!T) : BufferUniformBase
 
 	void validateBlock(UniformBlockInfo info) 
 	{
-
-		std.stdio.writeln(info.size);
 		assert(info.size == T.sizeof);
 	}
 }

@@ -252,7 +252,6 @@ class PngLoader
 				processIEND();
 				break;
 			default:
-				writeln("Unknown chunk type");
 				break;
 		}
 	}

@@ -39,12 +39,8 @@ class MandelbrotExample : Example
 									  float4(1.0f, 1.0f, 1.0f, 0.98f),
 									  float4(0.1f, 0.1f, 0.1f, 1.0f)];
 
-		import std.stdio;
-		writeln(colorMap);
 		
 		program.uniform["clrs"] = colorMap;
-
-		std.stdio.writeln(program.uniforms);
 	}
 
 

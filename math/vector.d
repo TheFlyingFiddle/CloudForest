@@ -6,7 +6,6 @@ import std.algorithm;
 import std.traits;
 import std.string;
 import core.exception : RangeError, AssertError;
-import std.regex;
 import utils.assertions;
 
 alias Vector2!(float) float2;

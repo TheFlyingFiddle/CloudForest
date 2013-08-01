@@ -25,7 +25,6 @@ void main(string[] argv)
 		loadSharedLibs();
 		auto window = openWindow();
 		Context.initialize();
-		writeln(Context.getInteger(GL_MAX_ARRAY_TEXTURE_LAYERS));
 
 		MouseEventState state = new MouseEventState();
 
