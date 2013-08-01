@@ -157,15 +157,15 @@ final class SpriteBuffer
 			}
 
 			CharInfo info = font[c];
-			float4 pos = float4(pos.x,
-									  pos.y,
-									  scale.x * info.srcRect.z, 
-									  scale.y * info.srcRect.w);
+			float4 ppos = float4(pos.x + info.offset.x,
+									   pos.y + info.offset.y,
+									   scale.x * info.srcRect.z, 
+									   scale.y * info.srcRect.w);
 			
-			vertices[elements++] = Vertex(pos, 
+			vertices[elements++] = Vertex(ppos, 
 												 info.textureCoords,
 												 float2(-origin.x - cursor.x,
-														  -origin.y - cursor.y),
+														  -origin.y - cursor.y ),
 												 color,
 												 rotation);
 

@@ -39,18 +39,15 @@ class TextureExample : Example
 
 		auto png = new PngLoader();
 		auto image = png.load("resources/PngTest.png");
-		texture = Texture2D.create(image.format, 
-											image.type, 
+		texture = Texture2D.create(image,
 											InternalFormat.rgba8,
-											image.width, 
-											image.height, 
-											image.data,
 											No.generateMipMaps);
+
 
 		sampler = new Sampler();
 
-		sampler.minFilter = TextureMinFilter.nearest;
-		sampler.magFilter = TextureMagFilter.nearest;
+		sampler.minFilter = TextureMinFilter.linear;
+		sampler.magFilter = TextureMagFilter.linear;
 
 	}
 

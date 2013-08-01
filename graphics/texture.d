@@ -4,6 +4,7 @@ import graphics.errors;
 import graphics.context;
 import graphics.enums;
 import graphics.buffer;
+import utils.image;
 import std.traits : Flag;
 import derelict.opengl3.gl3;
 
@@ -156,7 +157,7 @@ final class Texture2D : Texture
 	static Texture2D create(ColorFormat format, ColorType type, 
 									InternalFormat internalFormat,
 									uint width, uint height, void[] data,
-									Flag!"generateMipMaps" flag) 	
+									Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no) 	
 		out { assertNoGLError(); } 
 	body
 	{
@@ -174,6 +175,12 @@ final class Texture2D : Texture
 		
 		return texture;
 	}
+
+	static Texture2D create(Image image, InternalFormat format, Flag!"generateMipMaps" flag = Flag!"generateMipMaps".no)
+	{
+		return create(image.format, image.type, format, image.width, image.height, image.data, flag);
+	}
+
 	static T[] getData(T)(uint offset, uint count, T[] output = null) 
 	{
 		assert(0);

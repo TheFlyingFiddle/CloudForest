@@ -24,8 +24,9 @@ class CharInfo
 
 	this() {}
 
-	protected void fix(Texture2D page)
+	protected void fix(Texture2D page, float size)
 	{
+		this._offset.y = size - _srcRect.w - _offset.y;
 		this._textureCoords.x = this._srcRect.x / page.width;
 		this._textureCoords.y = this._srcRect.y / page.width;
 		this._textureCoords.z = (this._srcRect.z  + this.srcRect.x) / page.height;
@@ -70,48 +71,32 @@ class Font
 
 	float2 messureString(string toMessure)
 	{
-		float2 size = float2(0,0);
-		float cursorX = 0;
+		float2 cursor = float2(0,0);
 
-		foreach(i, elem; toMessure)
+		foreach(wchar c; toMessure)
 		{
-			char c = elem;
-			if(c == '\r') //Ignore windows bullshit
-				continue;
+			if(c == '\r') continue;
 
-			if (c == '\n')
-			{
-				size.y += this.lineHeight;
-				if (cursorX > size.x)
-					size.x = cursorX;
-
-				cursorX = 0;
+			auto cc = cursor;
+			if(c == ' ') {
+				CharInfo spaceInfo = this[' '];
+				cursor.x += spaceInfo.advance;
 				continue;
-			}
-			else if (c == '\t')
-			{
-				CharInfo ci = this[' '];
-				cursorX += ci.advance * tabSpaceCount;
+			}	else if(c == '\n') {
+				cursor.y -= lineHeight;
+				cursor.x = 0;
+				continue;
+			} else if(c == '\t') {
+				CharInfo spaceInfo = this[' '];
+				cursor.x += spaceInfo.advance * tabSpaceCount;
 				continue;
 			}
-
 			CharInfo info = this[c];
-			if (info is null)
-			{
-				info = this.unkownChar;
-			}
-
-			if (i != toMessure.length - 1)
-				cursorX += info.advance;
-			else
-				cursorX += info.srcRect.w;
+			cursor.x += (info.advance);
 		}
 
-		if (cursorX > size.x)
-			size.x = cursorX;
-
-		size.y += this.size;
-		return size;
+		cursor.y += this.size;
+		return cursor;
 	}
 
 
@@ -126,12 +111,8 @@ class Font
 
 		auto loader = new PngLoader();
 		auto image = loader.load(setExtension(fontPath, ".png"));
-		page = Texture2D.create(image.format, 
-										image.type, 
+		page = Texture2D.create(image,
 										InternalFormat.rgba8,
-										image.width, 
-										image.height, 
-										image.data,
 										No.generateMipMaps);
 
 		foreach(line; std.stdio.File(fontPath).byLine())
@@ -146,7 +127,7 @@ class Font
 				} else if(word.length >= 7 && word[0 .. 7] == "xoffset") {
 					chars[id]._offset.x = to!float(word[8 .. $]); 
 				} else if(word.length >= 7 && word[0 .. 7] == "yoffset") {
-					chars[id]._offset.y = -to!float(word[8 .. $]); 
+					chars[id]._offset.y = to!float(word[8 .. $]); 
 				}  else if(word.length >= 8 && word[0 .. 8] == "xadvance") {
 					chars[id]._advance = to!float(word[9 .. $]); 
 				} else if(word[0 .. 1] == "x") {
@@ -163,7 +144,7 @@ class Font
 					chars[id]._srcRect.y -= to!float(word[7 .. $]);
 					chars[id]._srcRect.w = to!float(word[7 .. $]);
 				} else if (word.length >= 4 && word[0 .. 4] == "chnl") {
-					chars[id].fix(page);
+					chars[id].fix(page, lineHeight);
 				}  else if (word.length >= 10 && word[0 .. 10] == "lineHeight") {
 					lineHeight = to!float(word[11 .. $]);
 				} 

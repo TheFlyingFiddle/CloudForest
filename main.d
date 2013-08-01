@@ -24,9 +24,12 @@ void main(string[] argv)
 	try {
 		loadSharedLibs();
 		auto window = openWindow();
+		glfwSetCharCallback(window, &unicodeCallback);
+
 		Context.initialize();
 
-		MouseEventState state = new MouseEventState();
+		MouseEventState	 mouseState = new MouseEventState();
+		KeyboardEventState keyState   = new KeyboardEventState();
 
 		gl.enable(Capability.blend);
 		gl.blendState = BlendState.nonPremultiplied;
@@ -39,7 +42,7 @@ void main(string[] argv)
 		examples ~= new TextureExample();
 		examples ~= new ParticleSystem();
 	 	examples ~= new SpriteBufferExample();
-		examples ~= new GUIExample(state);
+		examples ~= new GUIExample(mouseState, keyState);
 
 
 		int activeExample = examples.length - 1;	
@@ -56,12 +59,43 @@ void main(string[] argv)
 			wasPressed = glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS;
 			glfwSwapBuffers(window);
 			glfwPollEvents();
-			fixMouseEventState(window, state);
+			fixMouseEventState(window, mouseState);
+			fixKeyboardEventState(window, keyState);
 		}
 
 	} catch(Throwable e) {
 		std.stdio.writeln(e);
 		std.stdio.readln();
+	}
+}
+
+dstring inputs;
+extern (C) void unicodeCallback(GLFWwindow* window, uint unicode)
+{
+	dchar c = unicode;
+	inputs ~= c;
+}
+
+
+void fixKeyboardEventState(GLFWwindow* window, KeyboardEventState state)
+{
+	import std.traits;
+
+	state.charInput = inputs;
+	inputs.length = 0;
+
+	foreach(key; EnumMembers!Key)
+	{
+		if(key == Key.unknown) continue;
+
+		KeyState oldState = state.keys[key];
+		state.keys[key] = cast(KeyState)glfwGetKey(window, key);
+
+		if(oldState != state.keys[key]) {
+			state.changed[key] = true;
+		} else {
+			state.changed[key] = false;
+		}
 	}
 }
 

@@ -40,8 +40,6 @@ class Image
 	const bool			flipCoords; 
 	ubyte[] data;
 
-
-
 	this(uint width, uint height, ColorType type, ColorFormat format, uint channels, bool flipCoords) 
 	{
 		this.width = width;
@@ -414,6 +412,7 @@ class PngLoader
 	void processScanLine() 
 	{
 		auto type = scanline0[0];
+		std.stdio.writeln(type);
 		if(type == 0) {
 		} else if(type == 1) {
 			convertSub();
@@ -466,11 +465,11 @@ class PngLoader
 			else						    return c;
 		}
 
-		for(size_t i = 0; i < scanline0.length; i++)
+		for(size_t i = 1; i < scanline0.length; i++)
 		{
-			ubyte a = i < channels + 1? 0 : scanline0[i - channels];
+			ubyte a = i < channels ? 0 : scanline0[i - channels];
 			ubyte b = scanline1[i];
-			ubyte c = i < channels + 1? 0 : scanline1[i - channels];
+			ubyte c = i < channels ? 0 : scanline1[i - channels];
 
 			scanline0[i] += paethPredictor(a,b,c);
 		}

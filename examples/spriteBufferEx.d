@@ -26,13 +26,10 @@ class SpriteBufferExample : Example
 		font = Font.load("resources/Metro.fnt");
 		auto png = new PngLoader();
 		auto image = png.load("resources/PngTest.png");
-		auto texture = Texture2D.create(image.format, 
-												  image.type, 
+		auto texture = Texture2D.create(image,
 												  InternalFormat.rgba8,
-												  image.width, 
-												  image.height, 
-												  image.data,
-												  No.generateMipMaps);
+													No.generateMipMaps);
+
 
 		frame = Frame(texture);
 
