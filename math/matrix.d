@@ -184,6 +184,19 @@ struct Matrix3
 							*ptr++, *ptr++, *ptr++); 
 	}
 
+	unittest
+	{
+		auto mat = mat3(
+							 1, 2, 3,
+							 5, 6, 7,
+							 9, 0, 1);
+
+		assertEquals(mat.transpose, mat3(
+													  1, 5, 9,
+													  2, 6, 0,
+													  3, 7, 1));
+	}
+
 	@property float determinant()
 	{          
 		return _rep[0]*_rep[4]*_rep[8]
@@ -282,17 +295,19 @@ struct Matrix3
 		return true;
 	}
 
-	Vector3!float opBinaryRight(string op)(Vector3!float rhs) if (op == "*")
+	Vector3!float opBinary(string op)(Vector3!float rhs) if (op == "*")
 	{
-		Vector3!float vec;
-		foreach(i;0..3)
-		{
-			foreach(j;0..3)
-			{
-				vec[i] += vec[j]*_rep[i,j];
-			}
-		}
-		return vec;															
+		return Vector3!float(
+											_rep[0]*rhs[0] + _rep[3]*rhs[1] + _rep[6]*rhs[2],
+											_rep[1]*rhs[0] + _rep[4]*rhs[1] + _rep[7]*rhs[2],
+											_rep[2]*rhs[0] + _rep[5]*rhs[1] + _rep[8]*rhs[2]
+										 );									
+	}
+
+	unittest
+	{
+		auto vec = float3(1.493f, 56.21f, 124.9f);
+		assertEquals(identity*vec, vec);
 	}
 
 	@property Matrix3 inverse()
@@ -606,15 +621,12 @@ struct Matrix4
 
 	Vector4!float opBinaryRight(string op)(Vector4!float rhs) if (op == "*")
 	{
-		Vector4!float vec;
-		foreach(i;0..n)
-		{
-			foreach(j;0..n)
-			{
-				vec[i] += vec[j]*_rep[i,j];
-			}
-		}
-		return vec;															
+		return Vector4!float(
+				_rep[0]*rhs[0] + _rep[4]*rhs[1] + _rep[8]*rhs[2] + _rep[12]*rhs[3],
+				_rep[1]*rhs[0] + _rep[5]*rhs[1] + _rep[9]*rhs[2] + _rep[13]*rhs[3],
+				_rep[2]*rhs[0] + _rep[6]*rhs[1] + _rep[10]*rhs[2] + _rep[14]*rhs[3],
+				_rep[3]*rhs[0] + _rep[7]*rhs[1] + _rep[11]*rhs[2] + _rep[15]*rhs[3]
+										 );
 	}
 
 	@property Matrix4 inverse()

@@ -195,7 +195,7 @@ final class SpriteBuffer
 		gl.vao		= vao;
 		gl.program	= program;
 
-		program.uniform["transform"] = transform.transpose;
+		program.uniform["transform"] = transform;
 		Texture2D texture = textures[0];
 		
 		uint count = 1;
