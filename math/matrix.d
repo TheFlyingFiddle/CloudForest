@@ -298,16 +298,16 @@ struct Matrix3
 	Vector3!float opBinary(string op)(Vector3!float rhs) if (op == "*")
 	{
 		return Vector3!float(
-									_rep[0]*rhs[0] + _rep[3]*rhs[1] + _rep[6]*rhs[2],
-									_rep[1]*rhs[0] + _rep[4]*rhs[1] + _rep[7]*rhs[2],
-									_rep[2]*rhs[0] + _rep[5]*rhs[1] + _rep[8]*rhs[2]
+									_rep[0]*rhs.x + _rep[3]*rhs.y + _rep[6]*rhs.z,
+									_rep[1]*rhs.x + _rep[4]*rhs.y + _rep[7]*rhs.z,
+									_rep[2]*rhs.x + _rep[5]*rhs.y + _rep[8]*rhs.z
 									);									
 	}
 
 	Vector2!float opBinary(string op)(Vector2!float rhs) if (op == "*")
 	{
-		return {_rep[0]*rhs[0] + _rep[3]*rhs[1] + rhs[2],
-				 _rep[1]*rhs[0] + _rep[4]*rhs[1] + rhs[2];};
+		return float2(_rep[0]*rhs.x + _rep[3]*rhs.y + _rep[6],
+				 _rep[1]*rhs.x + _rep[4]*rhs.y + _rep[7]);
 	}
 
 	unittest
@@ -628,10 +628,10 @@ struct Matrix4
 	Vector4!float opBinaryRight(string op)(Vector4!float rhs) if (op == "*")
 	{
 		return Vector4!float(
-				_rep[0]*rhs[0] + _rep[4]*rhs[1] + _rep[8]*rhs[2] + _rep[12]*rhs[3],
-				_rep[1]*rhs[0] + _rep[5]*rhs[1] + _rep[9]*rhs[2] + _rep[13]*rhs[3],
-				_rep[2]*rhs[0] + _rep[6]*rhs[1] + _rep[10]*rhs[2] + _rep[14]*rhs[3],
-				_rep[3]*rhs[0] + _rep[7]*rhs[1] + _rep[11]*rhs[2] + _rep[15]*rhs[3]
+				_rep[0]*rhs.x + _rep[4]*rhs.y + _rep[8]*rhs.z + _rep[12]*rhs.w,
+				_rep[1]*rhs.x + _rep[5]*rhs.y + _rep[9]*rhs.z + _rep[13]*rhs.w,
+				_rep[2]*rhs.x + _rep[6]*rhs.y + _rep[10]*rhs.z + _rep[14]*rhs.w,
+				_rep[3]*rhs.x + _rep[7]*rhs.y + _rep[11]*rhs.z + _rep[15]*rhs.w
 										 );
 	}
 

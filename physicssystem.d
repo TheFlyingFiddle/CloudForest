@@ -23,8 +23,8 @@ interface ITransformationComponent:IComponent
 	@property void scale(float2 newScale);
 	@property float rotation();
 	@property void rotation(float newRot);
-	@property mat2 matrix();
-	@property void matrix(mat2 newMat);
+	@property mat3 matrix();
+	@property void matrix(mat3 newMat);
 }
 
 class PositionUpdateSystem : ISystem
@@ -110,31 +110,39 @@ class CollisionSystem : ISystem
 			auto line = bWorldSpace[i] - ((i == 0)?bWorldSpace[bLength-1]:bWorldSpace[i-1]);
 			bNormals[i] = float2(line.y,-line.x);
 		}
+		writeln(aNormals);
+		writeln(aWorldSpace);
 
 		//For every projection, generate min/max and try
 		foreach(normal;aNormals[0..aLength])
 		{
-			float aMin = -float.max;
-			float aMax =  float.max;
+			float aMin =  float.max;
+			float aMax =  -float.max;
 			foreach(i;0..aLength)
 			{
 				float proj = aWorldSpace[i].dot(normal);
+				writeln(proj);
 				if(proj<aMin)
 					aMin = proj;
 				if(proj>aMax)
 					aMax = proj;
 			}
-			float bMin = -float.max;
-			float bMax =  float.max;
+			float bMin =  float.max;
+			float bMax = -float.max;
 			foreach(i;0..aLength)
 			{
 				float proj = bWorldSpace[i].dot(normal);
+				writeln(proj);
 				if(proj<bMin)
 					bMin = proj;
 				if(proj>bMax)
 					bMax = proj;
 			}
 
+			writeln(aMin);
+			writeln(aMax);
+			writeln(bMin);
+			writeln(bMax);
 			if(aMin>bMax||bMin>aMax)
 				return false;
 		}
@@ -145,6 +153,7 @@ class CollisionSystem : ISystem
 			foreach(i;0..aLength)
 			{
 				float proj = aWorldSpace[i].dot(normal);
+				writeln(proj);
 				if(proj<aMin)
 					aMin = proj;
 				if(proj>aMax)
@@ -183,19 +192,23 @@ class CollisionSystem : ISystem
 		@property void scale(float2 newScale);
 		@property float rotation();
 		@property void rotation(float newRot);
-		@property mat2 matrix();
-		@property void matrix(mat2 newMat);
+		@property mat3 matrix();
+		@property void matrix(mat3 newMat);
 	}
 
 	unittest
 	{
-		mat2 aTransform = mat2.scale(2);
+		auto aTransform = mat3(1,0,2,
+									  0,1,2,
+									  0,0,1);
 		float2[] aVerts = [float2(1f,1f),float2(0f,1f),
 							 	 float2(0f,0f),float2(0f,1f)];
 
-		mat2 bTransform = mat2.scale(3);
-		float2[] bVerts = [float2(99f,100f),float2(100f,90f),
-								 float2(90f,100f),float2(100f,99f)];
+		auto bTransform = mat3(1,0,9,
+									  0,1,9,
+									  0,0,1);
+		float2[] bVerts = [float2(1f,1f),float2(0f,1f),
+									float2(0f,0f),float2(0f,1f)];
 		auto a = new class BTC {
 			@property float2 position(){return float2.init;}
 			@property void position(float2){}
@@ -203,8 +216,8 @@ class CollisionSystem : ISystem
 			@property void scale(float2 newScale){}
 			@property float rotation(){return float.init;}
 			@property void rotation(float newRot){}
-			@property mat2 matrix(){return aTransform;}
-			@property void matrix(mat2 newMat){}
+			@property mat3 matrix(){return aTransform;}
+			@property void matrix(mat3 newMat){}
 
 			@property float2[] vertices(){return aVerts;}
 			@property void vertices(float2[] newVerts){}
@@ -217,8 +230,8 @@ class CollisionSystem : ISystem
 			@property void scale(float2 newScale){}
 			@property float rotation(){return float.init;}
 			@property void rotation(float newRot){}
-			@property mat2 matrix(){return bTransform;}
-			@property void matrix(mat2 newMat){}
+			@property mat3 matrix(){return bTransform;}
+			@property void matrix(mat3 newMat){}
 
 			@property float2[] vertices(){return bVerts;}
 			@property void vertices(float2[] newVerts){}
@@ -227,6 +240,50 @@ class CollisionSystem : ISystem
 		writeln(bVerts);
 		writeln(a.vertices);
 		writeln(b.vertices);
-		assert(SET(a,b));
+		assert(!SET(a,b));
+
+		aTransform = mat3(1,0,-4,
+								0,1,-2,
+								0,0,1);
+		aVerts = [float2(1f,1f),float2(0f,1f),
+		float2(0f,0f),float2(0f,1f)];
+
+		bTransform = mat3(1,0,-3,
+									  0,1,-3,
+									  0,0,1);
+		bVerts = [float2(1f,1f),float2(0f,1f),
+		float2(0f,0f),float2(0f,1f)];
+		auto v = new class BTC {
+			@property float2 position(){return float2.init;}
+			@property void position(float2){}
+			@property float2 scale(){return float2.init;}
+			@property void scale(float2 newScale){}
+			@property float rotation(){return float.init;}
+			@property void rotation(float newRot){}
+			@property mat3 matrix(){return aTransform;}
+			@property void matrix(mat3 newMat){}
+
+			@property float2[] vertices(){return aVerts;}
+			@property void vertices(float2[] newVerts){}
+		};
+
+		auto u = new class BTC {
+			@property float2 position(){return float2.init;}
+			@property void position(float2){}
+			@property float2 scale(){return float2.init;}
+			@property void scale(float2 newScale){}
+			@property float rotation(){return float.init;}
+			@property void rotation(float newRot){}
+			@property mat3 matrix(){return bTransform;}
+			@property void matrix(mat3 newMat){}
+
+			@property float2[] vertices(){return bVerts;}
+			@property void vertices(float2[] newVerts){}
+		};
+		writeln(aVerts);
+		writeln(bVerts);
+		writeln(a.vertices);
+		writeln(b.vertices);
+		assert(SET(v,u));
 	}
 }

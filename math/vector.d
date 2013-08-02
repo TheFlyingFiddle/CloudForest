@@ -36,10 +36,16 @@ alias Vector4!(uint) uint4;
 struct Vector2(T) if(isNumeric!T)
 {
 	
-	enum zero = Vector2!T(0,0);
-	enum one  = Vector2!T(1,1);
+	enum Vector2!T zero = Vector2!T(0,0);
+	enum Vector2!T one  = Vector2!T(1,1);
 
 	T x,y;
+
+	this(T x, T y)
+	{
+		this.x = x;
+		this.y = y;
+	}
 
 	Vector2!T opBinary(string op)(Vector2!T rhs) if (op == "+" ||
 																	 op == "-" ||
@@ -175,12 +181,24 @@ struct Vector2(T) if(isNumeric!T)
 
 struct Vector3(T) if(isNumeric!T)
 {
-	enum zero = Vector3!T(0,0,0);
-	enum one  = Vector3!T(1,1,1);
+	enum Vector3!T zero = Vector3!T(0,0,0);
+	enum Vector3!T one  = Vector3!T(1,1,1);
 
 	T x, y, z;
 
-	Vector3!T opBinary(string op)(Vector3!T rhs) if (op == "+" ||
+	this(T x, T y, T z)
+	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	this(Vector2!T vec, T val)
+	{
+		this.x = vec.x;
+		this.y = vec.y;
+		this.z = val;
+	}	Vector3!T opBinary(string op)(Vector3!T rhs) if (op == "+" ||
 																	 op == "-" ||
 																	 op == "*") 
 	{
@@ -315,10 +333,42 @@ struct Vector3(T) if(isNumeric!T)
 
 struct Vector4(T) if(isNumeric!T)
 {
-	enum zero = Vector4!T(0,0,0,0);
-	enum one  = Vector4!T(1,1,1,1);
+	enum Vector4!T zero = Vector4!T(0,0,0,0);
+	enum Vector4!T one  = Vector4!T(1,1,1,1);
 
 	T x, y, z, w;
+
+	this(T x, T y, T z, T w)
+	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
+	}
+
+	this(Vector3!T vec, T val)
+	{
+		this.x = vec.x;
+		this.y = vec.y;
+		this.z = vec.z;
+		this.w = val;
+	}
+
+	this(Vector2!T vec1, Vector2!T vec2)
+	{
+		this.x = vec1.x;
+		this.y = vec1.y;
+		this.z = vec2.x;
+		this.w = vec2.y;
+	}
+
+	this(Vector2!T vec, T val1, T val2)
+	{
+		this.x = vec.x;
+		this.y = vec.y;
+		this.z = val1;
+		this.w = val2;
+	}
 
 	Vector4!T opBinary(string op)(Vector4!T rhs) if (op == "+" ||
 																	 op == "-" ||
