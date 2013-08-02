@@ -60,7 +60,7 @@ class GUIExample : Example
 		selected = gui.toolbar(float4(20, 450, 60, 40), selected, tools);
 
 		auto o = t;
-		t = gui.toggle(float4(100,325,32,32), t, "I AM A STUPID COMBO BOX");
+		t = gui.toggle(float4(100,325,100,32), t, "Boxeru");
 		if(t != o) 
 			std.stdio.writeln("noo");
 
@@ -110,7 +110,7 @@ class GUIExample : Example
 		toggle.untoggleFrame = Frame(tex1);
 		toggle.color			= normal;
 		toggle.textColor		= textColor;
-		toggle.textPadding	= float2(5,5);
+		toggle.textPadding	= float4(5,5, 5, 5);
 		toggle.font				= font;
 
 		TextfieldStyle textfield   = new TextfieldStyle();
@@ -118,7 +118,7 @@ class GUIExample : Example
 		textfield.backgroundColor	= normal;
 		textfield.textColor			= textColor;
 		textfield.font					= font;
-		textfield.textPadding		= float2(5,5);
+		textfield.textPadding		= float4(5,5, 5,5);
 		textfield.cursorColor		= Color.black;
 		textfield.cursorFrame		= pixel;
 
@@ -130,6 +130,10 @@ class GUIExample : Example
 		slider.normal			= ButtonStateStyle(pixel, down);
 		slider.highlight		= ButtonStateStyle(pixel, highlight);
 
-		return GUIStyle(bstyle, bstyle, toggle, textfield, slider, slider);
+		LabelStyle label = new LabelStyle();
+		label.font		  = font;
+		label.textColor  = textColor;
+
+		return GUIStyle(bstyle, bstyle, toggle, textfield, slider, slider, label);
 	}
 }

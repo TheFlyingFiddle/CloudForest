@@ -275,12 +275,20 @@ class ToggleStyle
 	Color textColor;
 	Font font;
 	
-	float2 textPadding;
+	float4 textPadding;
 
 	Frame frame(bool isToggled)
 	{		
 		return isToggled ? toggleFrame : untoggleFrame;
 	}	
+
+	float4 textRect(float4 rect) 
+	{
+		return float4(rect.x + textPadding.x + rect.w,
+						  rect.y + textPadding.y,
+						  rect.z - textPadding.x - textPadding.z - rect.w,
+						  rect.w - textPadding.y - textPadding.w);
+	}
 }
 
 class TextfieldStyle
@@ -294,12 +302,13 @@ class TextfieldStyle
 	Frame cursorFrame;
 	Color	cursorColor;
 
-	float2 textPadding;
+	float4 textPadding;
 	float4 paddedRect(float4 rect)
 	{
-		return rect + float4(textPadding.x,
-									textPadding.y,
-									0, 0);
+		return float4(rect.x + textPadding.x,
+						  rect.y + textPadding.y,
+						  rect.z - textPadding.x - textPadding.z,
+						  rect.w - textPadding.y - textPadding.w);
 	}
 }	
 
@@ -315,6 +324,12 @@ class SliderStyle
 	Color inactiveColor;
 }
 
+class LabelStyle
+{
+	Font font;
+	Color textColor;
+}
+
 struct GUIStyle
 {
 	ButtonStyle		 button;
@@ -323,13 +338,15 @@ struct GUIStyle
 	TextfieldStyle  textfield;
 	SliderStyle		 vslider;
 	SliderStyle		 hslider;
-
+	LabelStyle		 label;
+	
 	this(ButtonStyle    button, 
 		  ButtonStyle    toolbar,
 		  ToggleStyle    toggle,
 		  TextfieldStyle textfield,
 		  SliderStyle	  vslider,
-		  SliderStyle	  hslider)
+		  SliderStyle	  hslider,
+		  LabelStyle	  label)
 	{
 		this.button    = button;
 		this.toolbar   = toolbar;
@@ -337,6 +354,7 @@ struct GUIStyle
 		this.textfield	= textfield;
 		this.vslider	= vslider;
 		this.hslider	= hslider;
+		this.label		= label;
 	}
 }
 
@@ -347,7 +365,6 @@ class GUI
 
 	private static Sampler	sampler;
 	private SpriteBuffer		buffer;
-	private Font				font;
 
 	private Frame checkBoxFrame;
 	private Frame unCheckBoxFrame;
@@ -382,9 +399,10 @@ class GUI
 		this.keyState = state;
 	}
 
-	void label(float4 rect, const (char)[] text) 
+	void label(float4 rect, const (char)[] text, LabelStyle style = null) 
 	{
-		this.buffer.addText(font, text, float2(rect.x, rect.y), Color.black);
+		style = (style) ? style : this.style.label;
+		this.buffer.addText(style.font, text, float2(rect.x, rect.y), style.textColor);
 	}
 
 	bool button(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
@@ -431,9 +449,10 @@ class GUI
 		auto pressed = wasPressed(rect);
 		isChecked	 = pressed ? !isChecked : isChecked;
 
-		this.buffer.addFrame(style.frame(isChecked), rect, style.color);
+		auto buttonRect = rect.xyww;
+		this.buffer.addFrame(style.frame(isChecked), buttonRect, style.color);
 		if(text)
-			this.buffer.addText(style.font, text, rect, style.textColor);
+			this.buffer.addText(style.font, text, style.textRect(rect), style.textColor);
 
 		handleFocus(rect);
 		return isChecked;
@@ -488,7 +507,7 @@ class GUI
 
 		if(isFocused)
 		{
-			float2 pos = font.messureString(t[0 .. textCursor.x]);
+			float2 pos = style.font.messureString(t[0 .. textCursor.x]) + style.textPadding.xy;
 			this.buffer.addFrame(style.cursorFrame, float4(pos.x + rect.x, rect.y, 1, rect.w), style.cursorColor);
 		}
 
