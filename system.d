@@ -1,12 +1,14 @@
 module entity.system;
 
 
-interface ISystem(T)
+interface IComponent {}
+
+interface ISystem
 {
 	/**********************************
 	*	Runs an update on all registered
 	*	objects in this system
 	***********************************/
 	void process();
-	void registerComponent(T obj);
+	void registerComponent(IComponent comp);
 }

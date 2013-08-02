@@ -298,10 +298,16 @@ struct Matrix3
 	Vector3!float opBinary(string op)(Vector3!float rhs) if (op == "*")
 	{
 		return Vector3!float(
-											_rep[0]*rhs[0] + _rep[3]*rhs[1] + _rep[6]*rhs[2],
-											_rep[1]*rhs[0] + _rep[4]*rhs[1] + _rep[7]*rhs[2],
-											_rep[2]*rhs[0] + _rep[5]*rhs[1] + _rep[8]*rhs[2]
-										 );									
+									_rep[0]*rhs[0] + _rep[3]*rhs[1] + _rep[6]*rhs[2],
+									_rep[1]*rhs[0] + _rep[4]*rhs[1] + _rep[7]*rhs[2],
+									_rep[2]*rhs[0] + _rep[5]*rhs[1] + _rep[8]*rhs[2]
+									);									
+	}
+
+	Vector2!float opBinary(string op)(Vector2!float rhs) if (op == "*")
+	{
+		return {_rep[0]*rhs[0] + _rep[3]*rhs[1] + rhs[2],
+				 _rep[1]*rhs[0] + _rep[4]*rhs[1] + rhs[2];};
 	}
 
 	unittest

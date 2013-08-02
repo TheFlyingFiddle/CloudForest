@@ -203,10 +203,12 @@
    <File path="examples\triangleExample.d" />
   </Folder>
   <Folder name="entity">
+   <File path="database.d" />
    <File path="enitity.d" />
    <File path="physicssystem.d" />
    <File path="rendersystem.d" />
    <File path="system.d" />
+   <File path="World.d" />
   </Folder>
   <Folder name="graphics">
    <File path="graphics\all.d" />

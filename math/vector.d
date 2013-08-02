@@ -2,6 +2,7 @@ module math.vector;
 import std.stdio;
 import std.conv;
 import std.range: iota;
+import std.math;
 import std.algorithm;
 import std.traits;
 import std.string;
@@ -44,15 +45,16 @@ struct Vector2(T) if(isNumeric!T)
 																	 op == "-" ||
 																	 op == "*") 
 	{
-		mixin("auto vec = Vector2!T;
+		mixin("auto vec = Vector2!T();
 				vec.x = x"~op~"rhs.x;
 				vec.y = y"~op~"rhs.y;
 				return vec;");
 	}
 
-	Vector2!T opBinary(string op)(T rhs) if (op == "*") 
+	Vector2!T opBinary(string op)(T rhs) if (op == "*" ||
+														  op == "/") 
 	{
-		mixin("auto vec = Vector3!T;
+		mixin("auto vec = Vector2!T();
 				vec.x = x"~op~"rhs;
 				vec.y = y"~op~"rhs;
 				return vec;");
@@ -99,14 +101,40 @@ struct Vector2(T) if(isNumeric!T)
 			y = val;
 		else
 			x = val;
-	}	
+	}
+
+	auto opSlice()
+	{
+		return this;
+	}
+
+	auto opSliceAssign(T c)
+	{
+		this.x = c;
+		this.y = c;
+	}
 	
 	ref Vector2 opOpAssign(string op)(Vector2!T vec)
 	{
-		mixin("this.x "~op~"= vec.x");
-		mixin("this.y "~op~"= vec.y");
+		mixin("this.x "~op~"= vec.x;");
+		mixin("this.y "~op~"= vec.y;");
+		return this;
 	}
 
+	static if (is(T == float)||
+				  is(T == double)||
+				  is(T == real))
+	{
+		T magnitude()
+		{
+			return sqrt(dot(this));
+		}
+
+		Vector2!T unit()
+		{
+			return this/magnitude;
+		}
+	}
 
 	auto opDispatch(string m)() if(validSwizzle!(m,2)()
 											 && m.length<=4)
@@ -163,7 +191,7 @@ struct Vector3(T) if(isNumeric!T)
 				return vec;");
 	}
 
-	Vector3!T opBinary(string op)(T rhs) if (op == "*") 
+	Vector3!T opBinary(string op)(T rhs) if (op == "*" ) 
 	{
 		mixin("auto vec = Vector3!T;
 				vec.x = x"~op~"rhs;
@@ -296,7 +324,7 @@ struct Vector4(T) if(isNumeric!T)
 																	 op == "-" ||
 																	 op == "*") 
 	{
-		mixin("auto vec = Vector4!T;
+		mixin("auto vec = Vector4!T();
 				vec.x = x"~op~"rhs.x;
 				vec.y = y"~op~"rhs.y;
 				vec.z = z"~op~"rhs.z;
@@ -306,7 +334,7 @@ struct Vector4(T) if(isNumeric!T)
 
 	Vector4!T opBinary(string op)(T rhs) if (op == "*") 
 	{
-		mixin("auto vec = Vector4!T;
+		mixin("auto vec = Vector4!T();
 				vec.x = x"~op~"rhs;
 				vec.y = y"~op~"rhs;
 				vec.z = z"~op~"rhs;
