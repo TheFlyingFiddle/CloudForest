@@ -174,6 +174,91 @@ final class SpriteBuffer
 		return this;
 	}
 
+	SpriteBuffer addText(Font font,
+								const (char)[] text, 
+								float4 rect,
+								Color color = Color.white)
+	{
+		if(elements + text.length > vertices.length)
+			throw new Exception("SpriteBuffer full");
+
+		textures[elements .. elements + text.length] = font.page;
+
+		float2 cursor = float2(0,0);
+		foreach(wchar c; text)
+		{
+			auto cc = cursor;
+			if(c == ' ') {
+				CharInfo spaceInfo = font[' '];
+				cursor.x += spaceInfo.advance;
+				continue;
+			}	else if(c == '\n') {
+				cursor.y -= font.lineHeight;
+				cursor.x = 0;
+				continue;
+			} else if(c == '\t') {
+				CharInfo spaceInfo = font[' '];
+				cursor.x += spaceInfo.advance * font.tabSpaceCount;
+				continue;
+			}
+
+			CharInfo info = font[c];
+			float4 ppos = float4(rect.x + info.offset.x + cursor.x,
+									   rect.y + info.offset.y + cursor.y,
+									   info.srcRect.z, 
+									   info.srcRect.w);
+			float4 coords = info.textureCoords;
+			cursor.x += info.advance;
+
+			if(rect.x + rect.z < ppos.x
+			|| rect.y + rect.w < ppos.y)
+				continue;
+
+
+			if(rect.x + rect.z < ppos.x + ppos.z) 
+			{
+				float old = ppos.z;
+				ppos.z = (rect.x + rect.z) - ppos.x;
+				coords.z = (coords.z - coords.x) * (ppos.z / old) + coords.x;
+			} 
+
+			if(rect.x > ppos.x) 
+			{
+				float old = ppos.z;
+				ppos.z -= rect.x - ppos.x;
+				ppos.x  = rect.x;
+
+				float s = (old - ppos.z) / old; 
+				coords.x += (coords.z - coords.x) * s;
+			}
+
+			if(rect.y + rect.w < ppos.y + ppos.w) 
+			{
+				float old = ppos.w;
+				ppos.w =(rect.y + rect.w) - ppos.y;
+				coords.w = (coords.w - coords.y) * (ppos.w / old) + coords.y;
+			} 
+
+			if(rect.y > ppos.y) 
+			{
+				float old = ppos.y;
+				ppos.y -= rect.y - ppos.y;
+				ppos.y  = rect.y;
+				
+				float s = (old - ppos.w) / old; 
+				coords.y += (coords.w - coords.y) * s;
+			}
+
+			vertices[elements++] = Vertex(ppos, 
+													coords,
+													float2.zero,
+													color,
+													0);
+
+		}
+		return this;
+	}
+
 
 	SpriteBuffer flush()
 	{

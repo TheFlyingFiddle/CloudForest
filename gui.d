@@ -230,29 +230,121 @@ enum Key
 	menu			  = GLFW_KEY_MENU,
 }
 
-struct GUIProperty
-{
-	Color normalColor0;
-	Color normalColor1;
-	Color focusColor0;
-	Color focusColor1;
-	Color activeColor0;
-	Color activeColor1;
 
-	enum defaultButton = 
-		GUIProperty(Color(0xFFaaaaFF),
-						Color.black,
-						Color(0xFFccccFF),
-						Color.black,
-						Color(0xFF8888FF),
-						Color.black);
+struct ButtonStateStyle
+{
+	Frame frame;
+	Color color;
 }
 
+class ButtonStyle
+{
+	ButtonStateStyle down;
+	ButtonStateStyle normal;
+	ButtonStateStyle highlight;
 
+	Color textColor;
+	Font font;
+	float2 textPadding;
 
+	float4 iconDim;
+	Color	 iconColor;
+
+	float4 iconRect(float4 rect) 
+	{
+		return float4(rect.x + rect.w * iconDim.x,
+						  rect.y + rect.w * iconDim.y,
+						  rect.z * iconDim.z,
+						  rect.w * iconDim.w);
+	}
+
+	float4 paddedRect(float4 rect)
+	{
+		return rect + float4(textPadding.x,
+									textPadding.y,
+									0, 0);
+	}
+}
+
+class ToggleStyle
+{
+	Frame toggleFrame;
+	Frame untoggleFrame;
+
+	Color color;
+	Color textColor;
+	Font font;
+	
+	float2 textPadding;
+
+	Frame frame(bool isToggled)
+	{		
+		return isToggled ? toggleFrame : untoggleFrame;
+	}	
+}
+
+class TextfieldStyle
+{
+	Frame background;
+	Color	backgroundColor;
+
+	Color textColor;
+	Font  font;
+
+	Frame cursorFrame;
+	Color	cursorColor;
+
+	float2 textPadding;
+	float4 paddedRect(float4 rect)
+	{
+		return rect + float4(textPadding.x,
+									textPadding.y,
+									0, 0);
+	}
+}	
+
+class SliderStyle
+{
+	Frame activeFrame;
+	Frame inactiveFrame;
+	
+	ButtonStateStyle normal;
+	ButtonStateStyle highlight;
+	
+	Color activeColor;
+	Color inactiveColor;
+}
+
+struct GUIStyle
+{
+	ButtonStyle		 button;
+	ButtonStyle		 toolbar;
+	ToggleStyle		 toggle;
+	TextfieldStyle  textfield;
+	SliderStyle		 vslider;
+	SliderStyle		 hslider;
+
+	this(ButtonStyle    button, 
+		  ButtonStyle    toolbar,
+		  ToggleStyle    toggle,
+		  TextfieldStyle textfield,
+		  SliderStyle	  vslider,
+		  SliderStyle	  hslider)
+	{
+		this.button    = button;
+		this.toolbar   = toolbar;
+		this.toggle		= toggle;
+		this.textfield	= textfield;
+		this.vslider	= vslider;
+		this.hslider	= hslider;
+	}
+}
+
+				
 class GUI
 {
-	private static Frame		pixel;
+	private GUIStyle			style;
+
 	private static Sampler	sampler;
 	private SpriteBuffer		buffer;
 	private Font				font;
@@ -267,19 +359,9 @@ class GUI
 	uint numControl = 0;
 	int2 textCursor;
 
-	this(Font font, Frame checkBoxFrame, Frame unCheckBoxFrame, SpriteBuffer buffer = null)
+	this(GUIStyle style, SpriteBuffer buffer = null)
 	{
-		if(pixel.texture is null) {
-			Color[1] color = [Color.white];
-			pixel = Frame(Texture2D.create(ColorFormat.rgba,
-											 ColorType.ubyte_,
-											 InternalFormat.rgba8,
-											 1,1, cast(void[])color, Flag!"generateMipMaps".no ));
-		}
-
-		this.checkBoxFrame	= checkBoxFrame;
-		this.unCheckBoxFrame = unCheckBoxFrame;
-		this.font			   = font;
+		this.style = style;
 		if(buffer)	
 			this.buffer		   = buffer;
 		else 
@@ -300,109 +382,156 @@ class GUI
 		this.keyState = state;
 	}
 
-
 	void label(float4 rect, const (char)[] text) 
 	{
 		this.buffer.addText(font, text, float2(rect.x, rect.y), Color.black);
 	}
 
-	bool button(float4 rect, const (char)[] text = null, GUIProperty property = GUIProperty.defaultButton)
+	bool button(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
 	{
-		auto bColor = selectColor(rect, property);
-		this.buffer.addFrame(pixel, rect, bColor);
-		if(text)
-			this.buffer.addText(font, text, float2(rect.x + 7, rect.y + 7), Color.black);
-
-		focus = wasPressed(rect) ? numControl : focus;
-		numControl++;
+		handleButton(rect, text, icon, style);
 		return wasPressed(rect);
 	}
 
-	bool repeatButton(float4 rect, const (char)[] text = null, GUIProperty property = GUIProperty.defaultButton)
+	bool repeatButton(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
 	{
-		auto bColor = selectColor(rect, property);
-		this.buffer.addFrame(pixel, rect, bColor);
-		if(text)
-			this.buffer.addText(font, text, float2(rect.x + 7, rect.y + 7), Color.black);
-
-
-		ButtonState down = mouseState.down[MouseButton.left];
-
-		focus = wasPressed(rect) ? numControl : focus;
-		numControl++;
-		return down.inState && pointInRect(rect, mouseState.newLoc) && pointInRect(rect, down.loc);
+		handleButton(rect, text, icon, style);
+		return isPressed(rect);
 	}
 
-	bool toggle(float4 rect, bool isChecked, const (char)[] text = null)
+	void handleButton(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
 	{
+		style = (style) ? style : this.style.button;
+
+		ButtonStateStyle state;
+		if(isFocused() || isHover(rect)) {
+			state = style.highlight;
+		} else if(isPressed(rect)) {
+			state = style.down;
+		} else {
+			state = style.normal;
+		}
+
+		this.buffer.addFrame(state.frame, rect, state.color);
+
+		if(icon.texture) 
+			this.buffer.addFrame(state.frame, style.iconRect(rect), style.iconColor);
+
+		if(text)
+			this.buffer.addText(style.font, text, style.paddedRect(rect), style.textColor);
+
+		handleFocus(rect);
+	}
+
+
+	bool toggle(float4 rect, bool isChecked, const (char)[] text = null, ToggleStyle style = null)
+	{
+		style = (style) ? style : this.style.toggle;
+
 		auto pressed = wasPressed(rect);
 		isChecked	 = pressed ? !isChecked : isChecked;
-		auto image   = isChecked ? checkBoxFrame : unCheckBoxFrame;
 
-		this.buffer.addFrame(image, rect);
+		this.buffer.addFrame(style.frame(isChecked), rect, style.color);
 		if(text)
-			this.buffer.addText(font, text, float2(rect.x + 7 + rect.z, rect.y + 7), Color.black);
+			this.buffer.addText(style.font, text, rect, style.textColor);
 
-		focus = wasPressed(rect) ? numControl : focus;
-		numControl++;
+		handleFocus(rect);
 		return isChecked;
 	}
 
-	string textField(float4 rect, string text)
+	string textField(float4 rect, string text, TextfieldStyle style = null)
 	{
+		style = (style) ? style : this.style.textfield;
+			
 		if(wasPressed(rect)) 
 		{
 			float2 offset = mouseState.newLoc - rect.xy;
-			textCursor.x = messureUntil(text, offset.x);
+			textCursor.x = messureUntil(style.font, text, offset.x);
 			focus = numControl;
 		}
 		
 		auto t = text;
-		if(isFocused && keyState.charInput.length > 0) {
-			auto index = textCursor.x;
-			string s = to!string(keyState.charInput);
-			t = t[0 .. index] ~ s ~ t[index .. $];
-			textCursor.x += s.length;
-		}
-		
-
-		if(keyState.wasPressed(Key.backspace) && t.length > 0)
-		{
-			if(textCursor.x == t.length) 
-				t = t[0 .. $ - 1];
-			else 
-				t = t[0 .. textCursor.x] ~ t[textCursor.x + 1 .. $];
-
-			textCursor.x = clamp!int(textCursor.x - 1, 0, t.length);
-		}
-
-		if(keyState.wasPressed(Key.left)) 
-		{
-			textCursor.x = clamp!int(textCursor.x - 1, 0, t.length);
-		} 
-
-		if(keyState.wasPressed(Key.right)) 
-		{
-			textCursor.x = clamp!int(textCursor.x + 1, 0, t.length);
-		} 
-
-		this.buffer.addFrame(pixel, rect, Color(0xFFe3ba55));
-		this.buffer.addText(font, t, float2(rect.x + 7, rect.y + 7), Color.black);
 
 		if(isFocused) {
+
+			if(keyState.charInput.length > 0) 
+			{
+				auto index = textCursor.x;
+				string s = to!string(keyState.charInput);
+				t = t[0 .. index] ~ s ~ t[index .. $];
+				textCursor.x += s.length;
+			}
+
+			if(keyState.wasPressed(Key.backspace) && t.length > 0)
+			{
+				if(textCursor.x == t.length) 
+					t = t[0 .. $ - 1]; 
+				else 
+					t = t[0 .. textCursor.x] ~ t[textCursor.x + 1 .. $];
+
+				textCursor.x = clamp!int(textCursor.x - 1, 0, t.length);
+			}
+
+			if(keyState.wasPressed(Key.left)) 
+			{
+				textCursor.x = clamp!int(textCursor.x - 1, 0, t.length);
+			} 
+
+			if(keyState.wasPressed(Key.right)) 
+			{
+				textCursor.x = clamp!int(textCursor.x + 1, 0, t.length);
+			} 
+		}
+
+		this.buffer.addFrame(style.background, rect, style.backgroundColor);
+		this.buffer.addText(style.font, t, style.paddedRect(rect), style.textColor);
+
+		if(isFocused)
+		{
 			float2 pos = font.messureString(t[0 .. textCursor.x]);
-			this.buffer.addFrame(pixel, float4(pos.x + rect.x + 7, rect.y, 1, rect.w), Color.green);
+			this.buffer.addFrame(style.cursorFrame, float4(pos.x + rect.x, rect.y, 1, rect.w), style.cursorColor);
 		}
 
 		numControl++;
 		return t;
 	}
 
+	/+//Will not remove but will wait and see if needed.
+	uint combobox(float4 rect, uint selected, string[] items)
+	{
+		this.buffer.addFrame(pixel, rect, Color(0xFF55FF96));
+		this.buffer.addText(font, items[selected], rect.xy, Color.black);
+
+		if(isFocused)
+		{
+			foreach(i, item; items)
+			{
+				rect.y -= rect.w;
+
+				auto c = (i % 2 == 0) ? Color(0xFF95FF55) : Color(0xFF55FF95); 
+				this.buffer.addFrame(pixel, rect, c);
+				this.buffer.addText(font, item, rect, Color.black);
+				
+				if(wasPressed(rect)) 
+				{
+					focus = -1;
+					selected = i;
+				}
+			}
+		} else {
+			focus = wasPressed(rect) ? numControl : focus;
+		}
+
+		numControl++;
+		return selected;
+	}+/
+
 	uint messureUntil(Font font, string toMessure, float maxWidth)
 	{
 		float2 cursor = float2.zero;
 		foreach(i, wchar c; toMessure) 
 		{
+
 			auto cc = cursor;
 			if(c == ' ') {
 				CharInfo spaceInfo = font[' '];
@@ -420,7 +549,7 @@ class GUI
 
 			CharInfo info = font[c];
 			cursor.x += (info.advance);
-			
+
 			if(cursor.x >= maxWidth)
 				return i; 
 		}
@@ -429,48 +558,46 @@ class GUI
 	}
 
 
-	uint toolbar(float4 rect, uint selected, string[] tools)
+	uint toolbar(float4 rect, uint selected, string[] tools, ButtonStyle style = null)
 	{
+		style = (style) ? style : this.style.toolbar;
 		uint spacing = 4;
 		uint outSel = -1;
 		foreach(i, tool;tools)
 		{
-			Color c;
+			ButtonStateStyle state;
 			if(i == selected) {
-				c = Color(0xFFaaFFaa);
-			} else if(pointInRect(rect, mouseState.newLoc))  {
-				c = Color(0xFFFFccaa);
+				state = style.down;
+			} else if(isHover(rect))  {
+				state = style.highlight;
 			} else {
-				c = Color(0xFFaaaaaa);
+				state = style.normal;
 			}
 
-			this.buffer.addFrame(pixel, rect, c);
-			this.buffer.addText(font, tool, float2(rect.x + 7, rect.y + 7), Color.black);
+			this.buffer.addFrame(state.frame, rect, state.color);
+			this.buffer.addText(style.font, tool, style.paddedRect(rect), style.textColor);
 
 			if(wasPressed(rect)) {
 				outSel = i;
 			}
 
-			focus = wasPressed(rect) ? numControl : focus;
+			handleFocus(rect);
 			rect.x += rect.z + spacing;
 		}
 		
-	
 		if(outSel != -1)
 			return outSel;
 
-		numControl++;
 		return selected;
 	}
 
 
 
-	float hslider(float4 rect, float value, float min = 0, float max = 100)
+	float hslider(float4 rect, float value, float min = 0, float max = 100, SliderStyle style = null)
 	{
-		auto box			= Color(0xFF5577FF),
-			  innerBox	= Color(0xFFFF7755);
+		style = (style) ? style : this.style.hslider;
 
-		this.buffer.addFrame(pixel, float2(rect.x, rect.y), box, float2(rect.z, rect.w));
+		this.buffer.addFrame(style.activeFrame, rect, style.activeColor);
 
 		value = setSliderValue(rect, mouseState.newLoc.x - rect.x, rect.z, value, min, max);
 		float4 innerRect = 
@@ -479,19 +606,21 @@ class GUI
 						  rect.w,
 						  rect.w);
 		
-		this.buffer.addFrame(pixel,  innerRect, innerBox);
-		
-		focus = wasPressed(rect) ? numControl : focus;
-		numControl++;
+		if(isHover(innerRect)) {
+			this.buffer.addFrame(style.highlight.frame,  innerRect, style.highlight.color);
+		} else {
+			this.buffer.addFrame(style.normal.frame,  innerRect, style.normal.color);
+		}
+
+		handleFocus(rect);
 		return value;
 	}
 
-	float vslider(float4 rect, float value, float min = 0, float max = 100)
+	float vslider(float4 rect, float value, float min = 0, float max = 100, SliderStyle style = null)
 	{
-		auto box			= Color(0xFF5577FF),
-			  innerBox	= Color(0xFFFF7755);
+		style = (style) ? style : this.style.vslider;
 
-		this.buffer.addFrame(pixel, float2(rect.x, rect.y), box, float2(rect.z, rect.w));
+		this.buffer.addFrame(style.activeFrame, rect, style.activeColor);
 
 		value = setSliderValue(rect, mouseState.newLoc.y - rect.y, rect.w, value, min, max);
 		float4 innerRect = 
@@ -500,12 +629,15 @@ class GUI
 					 rect.z,
 					 rect.z);
 
-		this.buffer.addFrame(pixel,  innerRect, innerBox);
-		focus = wasPressed(rect) ? numControl : focus;
-		numControl++;
+		if(isHover(innerRect)) {
+			this.buffer.addFrame(style.highlight.frame,  innerRect, style.highlight.color);
+		} else {
+			this.buffer.addFrame(style.normal.frame,  innerRect, style.normal.color);
+		}
+
+		handleFocus(rect);
 		return value;
 	}
-
 
 	float setSliderValue(float4 rect, float pos, float width, float value, float min, float max)
 	{
@@ -521,29 +653,7 @@ class GUI
 				value = clamp(tmp, min, max);
 			}
 		}
-
-		focus = wasPressed(rect) ? numControl : focus;
-		numControl++;
 		return value;
-	}
-
-
-	Color selectColor(float4 loc, GUIProperty property) 
-	{
-		ButtonState down = mouseState.down[MouseButton.left];
-		if(mouseState.isDown(MouseButton.left))
-		{
-			if(pointInRect(loc, down.loc)) 
-			{
-				return property.activeColor0;
-			}
-		} 
-		else if(pointInRect(loc, mouseState.newLoc))
-		{
-			return property.focusColor0;
-		}
-
-		return property.normalColor0;
 	}
 
 	public void draw(ref mat4 transform)
@@ -556,9 +666,20 @@ class GUI
 		this.numControl = 0;
 	}
 
+	private void handleFocus(float4 rect)
+	{
+		focus = wasPressed(rect) ? numControl : focus;
+		numControl++;
+	}
+
 	bool isFocused()
 	{
 		return focus == numControl;
+	}
+
+	bool isHover(float4 rect)
+	{
+		return pointInRect(rect, mouseState.newLoc);
 	}
 
 	private bool wasPressed(float4 rect) 
@@ -572,6 +693,17 @@ class GUI
 				&&  pointInRect(rect, down.loc);
 		}
 		return false;
+	}
+
+	private bool isPressed(float4 rect)
+	{
+		return mouseDownIn(rect) && isHover(rect);
+	}
+
+	private bool mouseDownIn(float4 rect) 
+	{
+		return mouseState.down[MouseButton.left].inState && 
+				 pointInRect(rect, mouseState.down[MouseButton.left].loc);
 	}
 
 	private bool pointInRect(float4 rect, float2 point) 
