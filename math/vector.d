@@ -143,31 +143,43 @@ struct Vector2(T) if(isNumeric!T)
 		}
 	}
 
-	auto opDispatch(string m)() if(validSwizzle!(m,2)()
-											 && m.length<=4)
+	@property void opDispatch(string m, Vector)(Vector vec) if(validSwizzle!(m,2)()
+																				  && m.length<=4
+																				  && isVector!Vector)
 	{
 		enum length = m.length;
 		enum xyzwOnly = translateRGBA(m);
-		enum str = "Vector"~to!string(length)~"!T("
-			~iota(length).map!(i => "this."~xyzwOnly[i]).join(",")//Generates this.x,... and so forth
-			~")";
-		return mixin(str);
+		enum str = iota(length).map!(i => text("this.",xyzwOnly[i],"= vec.",xyzwOnly[i],";")).join();//Generates this.x = vec,this.y... and so forth
+		mixin(str);
+	}
+
+	@property void opDispatch(string m, Proxy)(Proxy proxy) if(validSwizzle!(m,2)()
+																				  && m.length<=4
+																				  && isProxy!Proxy)
+	{
+		auto vec = proxy.buildVector;
+		enum length = m.length;
+		enum xyzwOnly = translateRGBA(m);
+		enum str = iota(length).map!(i => text("this.",xyzwOnly[i],"= vec.",xyzwOnly[i],";")).join();//Generates this.x = vec,this.y... and so forth
+		mixin(str);
 	}
 
 	unittest
 	{
 		auto a = int2(1,2);
-		assertEquals(a.yxyx, int4(2,1,2,1));
-		assertEquals(a.rgr, int3(1,2,1));
+		//assertEquals(a.yxyx, int4(2,1,2,1));
+		//assertEquals(a.rgr, int3(1,2,1));
 	}
 
-	@property void opDispatch(string m, Vector)(Vector vec) if(validSwizzle!(m,2)()
-																				  && m.length<=4)
+	@property auto opDispatch(string m)() if(validSwizzle!(m,2)()
+											 && m.length<=4)
 	{
 		enum length = m.length;
 		enum xyzwOnly = translateRGBA(m);
-		enum str = iota(length).map!(i => text("this.",xyzwOnly[i],"= vec[",i,"];")).join();//Generates this.x = vec,this.y... and so forth
-		mixin(str);
+		enum str = "Proxy!(T,"~to!string(length)~")("
+			~iota(length).map!(i => "&this."~xyzwOnly[i]).join(",")//Generates this.x,... and so forth
+			~")";
+		return mixin(str);
 	}
 
 	unittest
@@ -308,17 +320,14 @@ struct Vector3(T) if(isNumeric!T)
 	unittest
 	{
 		auto a = int3(1,2,3);
-		//assertEquals(a.zxyz, int4(3,1,2,3));
-		//assertEquals(a.rgr, int3(1,2,1));
-		writeln("bool opEquals(Vector"~to!string(4)~"!T vec){"~
-				  // Generates *x == vec.x; and so on...
-				  iota(4).map!(i => ("*"~"xyzw"[i]~"==vec."~"xyzw"[i]~";")).join()
-				  ~"}");
-		readln();
+		assertEquals(cast(int4)a.zxyz, int4(3,1,2,3));
+		assertEquals(cast(int3)a.rgr, int3(1,2,1));
+  writeln(cast(int4)a.zxyz);
 	}
 
 	@property void opDispatch(string m, Vector)(Vector vec) if(validSwizzle!(m,3)()
-																				  && m.length<=4)
+																				  && m.length<=4
+																				  && isVector!Vector)
 	{
 		enum length = m.length;
 		enum xyzwOnly = translateRGBA(m);
@@ -326,6 +335,16 @@ struct Vector3(T) if(isNumeric!T)
 		mixin(str);
 	}
 
+	@property void opDispatch(string m, Proxy)(Proxy proxy) if(validSwizzle!(m,3)()
+																				  && m.length<=4
+																				  && isProxy!Proxy)
+	{
+		auto vec = proxy.buildVector;
+		enum length = m.length;
+		enum xyzwOnly = translateRGBA(m);
+		enum str = iota(length).map!(i => text("this.",xyzwOnly[i],"= vec.",xyzwOnly[i],";")).join();//Generates this.x = vec,this.y... and so forth
+		mixin(str);
+	}
 
 	unittest
 	{
@@ -463,32 +482,44 @@ struct Vector4(T) if(isNumeric!T)
 		}
 	}
 
-	@property Proxy!(T,m.length) opDispatch(string m)() if(validSwizzle!(m,4)()
-															  && m.length<=4)
-	{
-		enum length = m.length;
-		enum xyzwOnly = translateRGBA(m);
-		enum str = text("return Proxy!(T,",length,")(",
-							iota(length).map!(i => "&this."~xyzwOnly[i]).join(","),//Generates this.x,this.z,... and so forth
-							");");
-		mixin(str);
-	}
-
-	unittest
-	{
-		auto a = int4(1,2,3,4);
-		//assertEquals(a.wxyz, int4(4,1,2,3));
-		//assertEquals(a.xyx, int3(1,2,1));
-	}
-
 	@property void opDispatch(string m, Vector)(Vector vec) if(validSwizzle!(m,4)()
-																	 && m.length<=4)
+																				  && m.length<=4
+																				  && isVector!Vector)
 	{
 		enum length = m.length;
 		enum xyzwOnly = translateRGBA(m);
 		enum str = iota(length).map!(i => text("this.",xyzwOnly[i],"= vec.",xyzwOnly[i],";")).join();//Generates this.x = vec,this.y... and so forth
 		mixin(str);
 	}
+
+	@property void opDispatch(string m, Proxy)(Proxy proxy) if(validSwizzle!(m,4)()
+																				  && m.length<=4
+																				  && isProxy!Proxy)
+	{
+		auto vec = proxy.buildVector;
+		enum length = m.length;
+		enum xyzwOnly = translateRGBA(m);
+		enum str = iota(length).map!(i => text("this.",xyzwOnly[i],"= vec.",xyzwOnly[i],";")).join();//Generates this.x = vec,this.y... and so forth
+		mixin(str);
+	}
+	unittest
+	{
+		auto a = int4(1,2,3,4);
+		assertEquals(a.wxyz.buildVector, int4(4,1,2,3));
+		assertEquals(a.xyx.buildVector, int3(1,2,1));
+	}
+
+	@property auto opDispatch(string m)() if(validSwizzle!(m,4)()
+														  && m.length<=4)
+	{
+		enum length = m.length;
+		enum xyzwOnly = translateRGBA(m);
+		enum str = "Proxy!(T,"~to!string(length)~")("
+			~iota(length).map!(i => "&this."~xyzwOnly[i]).join(",")//Generates this.x,... and so forth
+			~")";
+		return mixin(str);
+	}
+
 }
 
 //////////////////////////////////////////////////
@@ -535,111 +566,85 @@ private static string translateRGBA(string str)
 	return res;
 }
 
+template isVector(T)
+{
+	enum isVector = is(T== Vector2!U,U...)||is(T== Vector3!U,U...)||is(T== Vector4!U,U...);
+}
+
+template isProxy(T)
+{
+	enum isProxy = is(T == Proxy!(U),U...);
+}
+
+unittest
+{
+	assert(isVector!int3);
+	assert(isProxy!(Proxy!(int,3)));
+}
+
 
 ////////////////////////////////////////////////////////
 //		Proxy
 ////////////////////////////////////////////////////////
 
-
-
 struct Proxy(T, uint n) if (2<=n && n<=4 &&
 									 isNumeric!T)
 {
+
 	//Declare pointer fields
-	mixin(buildFields(n));
+	mixin(iota(n).map!(q{"private T* _"~"xyzw"[a]~";"}).join());
 
-	mixin(buildAlias(n));
+	mixin(text("@property public Vector",n,"!T buildVector()
+				  { return Vector",n,"!T(",iota(n).map!(q{"*_"~"xyzw"[a]}).join(","),");}"));
+	alias buildVector this;
 
-	//Declare constructor
-	mixin(buildConstructor(n));
-	mixin(buildConstructor2(n));
+	//Declare constructors
+	mixin("this("~//T* x, T* y, T* z, T* w generated
+			iota(n).map!(q{"T* "~"xyzw"[a]}).join(",")~
+		"){"~// Generates thisx = vec.x; and so on...
+		iota(n).map!(q{"this._"~"xyzw"[a]~"="~"xyzw"[a]~";"}).join()
+		~"}");
+	mixin("this(ref Vector"~to!string(n)~"!T vec){"~
+		// Generates *x = &vec.x; and so on...
+		iota(n).map!(q{"_"~"xyzw"[a]~"=&(vec."~"xyzw"[a]~");"}).join()
+		~"}");
 
 	//Declare opAssign
-	mixin(buildOpAssign(n));
-
+	mixin("void opAssign(Vector"~to!string(n)~"!T vec){"~
+			// Generates *x = vec.x; and so on...
+			iota(n).map!(q{"*_"~"xyzw"[a]~"=vec."~"xyzw"[a]~";"}).join()
+			~"}");
 
 	//Declare opOpAssign
-	mixin(buildOpOpAssign(n));
+	mixin("ref auto opOpAssign(string op)(Vector"~to!string(n)~"!T vec){"~
+			// Generates *x += vec.x; and so on...
+			iota(n).map!(q{"mixin(\"*_"~"xyzw"[a]~"\"~op~\"=vec."~"xyzw"[a]~";\");"}).join()
+				~"return this;}");
 
-	mixin(buildOpEquals(n));
-
-
+	//Declare opEquals
+	mixin("bool opEquals(Vector"~to!string(n)~"!T vec){
+		return (this.buildVector == vec);
+			}");
+	
+	///Using the proxy vector like a normal vector is forbidden to
+	///enforce performant code.
+	void opDispatch(string m, Args...)(Args args)
+	{
+		static assert(false, "Can't use method '"~m~"' with args"~to!string(args)~"on Proxy struct.
+							Did you unwittingly create a proxy variable using auto?");
+	}	
+	
 	//Declare properties
-	mixin(buildGetProperties(n));
-	mixin(iota(n).map!(q{text("@property void ","xyzw"[a],"(T val){ *_","xyzw"[a],"=val;
-									  writeln(_x,*_x,val);}")}).join());
-
-	@disable this();
-	@disable this(this);
-	@disable this(Proxy!(T,n));
-	@disable void opAssign(ref Proxy!(T,n));
-	@disable void opAssign(Proxy!(T,n));
+	mixin(iota(n).map!(q{"@property private T "~"xyzw"[a]~"(){
+			assert(false,\"Tried to access property "~"xyzw"[a]~"  
+			of proxy vector. This usage is disallowed to enforce performant code.\");}"}).join());
+	mixin(iota(n).map!(q{text("@property private void ","xyzw"[a],"(T val){ 
+														assert(false,
+														\"Tried to set property "~"xyzw"[a]~"  
+														of proxy vector to \"~to!string(val)~\". This usage is disallowed to enforce performant code.
+														\");}")}).join());
 }
 
-private static string buildFields(int n)
-{
-	return iota(n).map!(i => ("private T* _"~"xyzw"[i]~";")).join();
-}
-
-private static string buildAlias(int n)
-{
-	return text("alias buildVector this;
-					@property Vector",n,"!T buildVector()
-					{ return Vector",n,"!T(",iota(n).map!(i => ("*_"~"xyzw"[i])).join(","),");}");
-}
-
-private static string buildConstructor(int n)
-{
-	return "this("~//T* x, T* y, T* z, T* w generated
-		iota(n).map!(i => ("T* "~"xyzw"[i])).join(",")~
-		"){"~// Generates thisx = vec.x; and so on...
-		iota(n).map!(i => ("this._"~"xyzw"[i]~"="~"xyzw"[i]~";")).join()
-		~"}";
-}
-
-private static string buildConstructor2(int n)
-{
-	return "this(ref Vector"~to!string(n)~"!T vec){"~
-		// Generates *x = &vec.x; and so on...
-		iota(n).map!(i => ("_"~"xyzw"[i]~"=&(vec."~"xyzw"[i]~");")).join()
-		~"}";
-}
-
-private static string buildOpAssign(int n)
-{
-	return "void opAssign(Vector"~to!string(n)~"!T vec){"~
-		// Generates *x = vec.x; and so on...
-		iota(n).map!(i => ("*_"~"xyzw"[i]~"=vec."~"xyzw"[i]~";")).join()
-		~"}";
-}
-
-private static string buildOpOpAssign(int n)
-{
-	return "ref auto opOpAssign(string op)(Vector"~to!string(n)~"!T vec){"~
-		// Generates *x += vec.x; and so on...
-		iota(n).map!(i => ("mixin(\"*_"~"xyzw"[i]~"\"~op~\"=vec."~"xyzw"[i]~";\");")).join()
-		~"return this;}";
-}
-
-private static string buildOpEquals(int n)
-{
-	return "bool opEquals(Vector"~to!string(n)~"!T vec){
-		return ("~
-		// Generates *x == vec.x; and so on...
-		iota(n).map!(i => ("*_"~"xyzw"[i]~"==vec."~"xyzw"[i])).join("&&")
-		~");}";
-}
-
-private static string buildGetProperties(int n)
-{
-	return iota(n).map!(i => ("@property T "~"xyzw"[i]~"(){ return *_"~"xyzw"[i]~";}")).join();
-}
-
-private static string buildSetProperties(int n)
-{
-	return iota(n).map!(q{text("@property void ","xyzw"[a],"(T val){ *_","xyzw"[a],"=val;
-																							writeln(_x,*_x,val);}")}).join();
-}
 unittest
 {
 	auto a = int4(1,2,3,4);
@@ -648,13 +653,13 @@ unittest
 	a.xy += b.zw + a.yx + a.xy;
 	assertEquals(a, int4(11,13,3,4));
 
-	Proxy!(int,2) c = a.xy;
-	c.x = 5;
-	//assertEquals(a, int4(11,13,3,4));//A should stay unmodified
-
+	assertEquals(a, int4(11,13,3,4));//A should stay unmodified IMPOSSIBRU
 	readln();
 }
-
+void bla(int2 c)
+{
+	writeln(c);
+}
 ///Old generic tests
 unittest{
 	try{
