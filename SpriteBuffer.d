@@ -71,7 +71,7 @@ final class SpriteBuffer
 	}
 
 	
-	SpriteBuffer addFrame(Frame frame,
+	/*SpriteBuffer addFrame(Frame frame,
 								 float4 rect,
 								 Color color = Color.white,
 								 float2 origin = float2.zero,
@@ -94,9 +94,38 @@ final class SpriteBuffer
 
 		textures[elements++] = frame.texture;
 		return this;
+	}*/
+
+	SpriteBuffer addFrame(Frame frame,
+								 float4 rect,
+								 float4 bounds,
+								 Color color = Color.white,
+								 float2 origin = float2.zero,
+								 float rotation = 0,
+								 bool mirror = false)
+	{
+		if(elements > vertices.length)
+			throw new Exception("SpriteBuffer full");
+
+		float4 coords = frame.coords;
+		if(mirror) {
+			swap(coords.x, coords.z);
+		}
+
+		
+		if(clampPosAndCoords(bounds, rect, coords)) {
+			vertices[elements] = Vertex(rect,
+												 coords,
+												 origin,
+												 color,
+												 rotation);
+		
+			textures[elements++] = frame.texture;
+		}
+		return this;
 	}
 
-	SpriteBuffer addFrame(Frame frame, 
+	/*SpriteBuffer addFrame(Frame frame, 
 								 float2 pos,
 								 Color color = Color.white,
 								 float2 scale = float2(1,1),
@@ -119,19 +148,17 @@ final class SpriteBuffer
 													  color,
 													  rotation);
 
-		textures[elements++] = frame.texture;
+		textures[elements++] = frame.t
 		return this;
-	}
+	}*/
 
-
-
-	SpriteBuffer addText(Font font,
-								const (char)[] text, 
+	SpriteBuffer addText(T)(Font font,
+								const (T)[] text, 
 								float2 pos,
-						 Color color = Color.white,
-						 float2 scale = float2(1,1),
-						 float2 origin = float2(0,0), 
-								float rotation = 0)
+								Color color = Color.white,
+								float2 scale = float2(1,1),
+								float2 origin = float2(0,0), 
+								float rotation = 0) if(is(T == char) || is(T == wchar) || is(T == dchar))
 	{
 		if(elements + text.length > vertices.length)
 			throw new Exception("SpriteBuffer full");
@@ -174,16 +201,12 @@ final class SpriteBuffer
 		return this;
 	}
 
-	SpriteBuffer addText(Font font,
-								const (char)[] text, 
-								float4 rect,
-								Color color = Color.white)
+	SpriteBuffer addText(T)(Font font,
+								const (T)[] text, 
+								float2 pos,
+								float4 scissor,
+								Color color = Color.white) if(is(T == char) || is(T == wchar) || is(T == dchar))
 	{
-		if(elements + text.length > vertices.length)
-			throw new Exception("SpriteBuffer full");
-
-		textures[elements .. elements + text.length] = font.page;
-
 		float2 cursor = float2(0,0);
 		foreach(wchar c; text)
 		{
@@ -203,61 +226,72 @@ final class SpriteBuffer
 			}
 
 			CharInfo info = font[c];
-			float4 ppos = float4(rect.x + info.offset.x + cursor.x,
-									   rect.y + info.offset.y + cursor.y,
+			float4 ppos = float4(pos.x + info.offset.x + cursor.x,
+									   pos.y + info.offset.y + cursor.y,
 									   info.srcRect.z, 
 									   info.srcRect.w);
 			float4 coords = info.textureCoords;
 			cursor.x += info.advance;
 
-			if(rect.x + rect.z < ppos.x
-			|| rect.y + rect.w < ppos.y)
-				continue;
+			
+		
+			if(clampPosAndCoords(scissor, ppos, coords)) {
+				vertices[elements] = Vertex(ppos, 
+														coords,
+														float2.zero,
+														color,
+														0);
 
-
-			if(rect.x + rect.z < ppos.x + ppos.z) 
-			{
-				float old = ppos.z;
-				ppos.z = (rect.x + rect.z) - ppos.x;
-				coords.z = (coords.z - coords.x) * (ppos.z / old) + coords.x;
-			} 
-
-			if(rect.x > ppos.x) 
-			{
-				float old = ppos.z;
-				ppos.z -= rect.x - ppos.x;
-				ppos.x  = rect.x;
-
-				float s = (old - ppos.z) / old; 
-				coords.x += (coords.z - coords.x) * s;
+				textures[elements++] = font.page;
 			}
-
-			if(rect.y + rect.w < ppos.y + ppos.w) 
-			{
-				float old = ppos.w;
-				ppos.w =(rect.y + rect.w) - ppos.y;
-				coords.w = (coords.w - coords.y) * (ppos.w / old) + coords.y;
-			} 
-
-			if(rect.y > ppos.y) 
-			{
-				float old = ppos.y;
-				ppos.y -= rect.y - ppos.y;
-				ppos.y  = rect.y;
-				
-				float s = (old - ppos.w) / old; 
-				coords.y += (coords.w - coords.y) * s;
-			}
-
-			vertices[elements++] = Vertex(ppos, 
-													coords,
-													float2.zero,
-													color,
-													0);
-
 		}
 		return this;
 	}
+
+
+	private bool clampPosAndCoords(float4 bounds, ref float4 pos, ref float4 coords)
+	{
+		if(bounds.x + bounds.z < pos.x || bounds.y + bounds.w < pos.y
+		|| pos.x + pos.z < bounds.x || pos.y + pos.w < bounds.y)
+			return false;
+
+		if(bounds.x + bounds.z < pos.x + pos.z) 
+		{
+			float old = pos.z;
+			pos.z = (bounds.x + bounds.z) - pos.x;
+			coords.z = (coords.z - coords.x) * (pos.z / old) + coords.x;
+		} 
+
+		if(bounds.x > pos.x) 
+		{
+			float old = pos.z;
+			pos.z -= bounds.x - pos.x;
+			pos.x  = bounds.x;
+
+			float s = (old - pos.z) / old; 
+			coords.x += (coords.z - coords.x) * s;
+		}
+
+		if(bounds.y + bounds.w < pos.y + pos.w) 
+		{
+			float old = pos.w;
+			pos.w =    (bounds.y + bounds.w) - pos.y;
+			coords.w = (coords.w - coords.y) * (pos.w / old) + coords.y;
+		} 
+
+		if(bounds.y > pos.y) 
+		{
+			double old = pos.w;
+			pos.w -= bounds.y - pos.y;
+			pos.y  = bounds.y;
+
+			double s = (old - pos.w) / old; 
+			coords.y += (coords.w - coords.y) * s;
+		}
+
+		return pos.w > 0 && pos.z > 0;
+	}
+
 
 
 	SpriteBuffer flush()
@@ -323,7 +357,7 @@ out vertexAttrib
 
 void main() 
 {
-	vertex.pos		 = pos;
+	vertex.pos		 = pos + vec4(-0.5f, -0.5f, 0,0);
 	vertex.texCoord = texCoord;
 	vertex.color	 = color;
 	vertex.origin   = origin;

@@ -9,6 +9,7 @@ import math.vector;
 import utils.image;
 import graphics.enums;
 import graphics.texture;
+import frame;
 
 class CharInfo 
 {
@@ -24,13 +25,14 @@ class CharInfo
 
 	this() {}
 
-	protected void fix(Texture2D page, float size)
+	protected void fix(Frame page, float size)
 	{
 		this._offset.y = size - _srcRect.w - _offset.y;
-		this._textureCoords.x = this._srcRect.x / page.width;
-		this._textureCoords.y = this._srcRect.y / page.width;
-		this._textureCoords.z = (this._srcRect.z  + this.srcRect.x) / page.height;
-		this._textureCoords.w = (this._srcRect.w  + this.srcRect.y) / page.height;
+
+		this._textureCoords.x = page.coords.x + (this._srcRect.x / page.texture.width);
+		this._textureCoords.y = page.coords.y + (this._srcRect.y / page.texture.height);
+		this._textureCoords.z = page.coords.x + (this._srcRect.z  + this.srcRect.x) / page.texture.width;
+		this._textureCoords.w = page.coords.y + (this._srcRect.w  + this.srcRect.y) / page.texture.height;
 	}
 }
 
@@ -43,12 +45,12 @@ class Font
 	immutable float size;
 	immutable float lineHeight;
 	CharInfo unkownChar;
-	private Texture2D _page;
+	private Frame _page;
 	private CharInfo[] chars;
 
-	@property Texture2D page() { return this._page; }
+	@property Texture2D page() { return this._page.texture; }
 
-	this(string face, float size, float lineHeight, Texture2D page, CharInfo[] chars)
+	this(string face, float size, float lineHeight, Frame page, CharInfo[] chars)
 	{
 		this.face = face;
 		this.size = size;
@@ -64,12 +66,13 @@ class Font
 
 	CharInfo opIndex(wchar c) 
 	{
-		if(chars[c] !is null)
+		if(cast(uint)c < chars.length && chars[c] !is null)
 			return chars[c];
 		return unkownChar;
 	}
 
-	float2 messureString(string toMessure)
+	float2 messureString(T)(const (T)[] toMessure)
+		if(is(T == char) || is(T == wchar) || is(T == dchar))
 	{
 		float2 cursor = float2(0,0);
 
@@ -100,20 +103,13 @@ class Font
 	}
 
 
-	static Font load(string fontPath) 
+	static Font load(string fontPath, Frame page) 
 	{
 		string face;
 		float size;
 		float lineHeight;
-		Texture2D page;
 		CharInfo[] chars = new CharInfo[100];
 		int id;
-
-		auto loader = new PngLoader();
-		auto image = loader.load(setExtension(fontPath, ".png"));
-		page = Texture2D.create(image,
-										InternalFormat.rgba8,
-										No.generateMipMaps);
 
 		foreach(line; std.stdio.File(fontPath).byLine())
 		{
@@ -133,7 +129,7 @@ class Font
 				} else if(word[0 .. 1] == "x") {
 					chars[id]._srcRect.x = to!float(word[2 .. $]);
 				} else if(word[0 .. 1] == "y") {
-					chars[id]._srcRect.y = page.height - to!float(word[2 .. $]);
+					chars[id]._srcRect.y = page.srcRect.w - to!float(word[2 .. $]);
 				} else if(word.length >= 4 && word[0 .. 4] == "face") {
 					face = word[6 .. $ - 1].idup;
 				} else if (word.length >= 4 && word[0 .. 4] == "size") {

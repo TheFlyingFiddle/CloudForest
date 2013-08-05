@@ -84,7 +84,6 @@ struct Color
 	{
 		return math.vector.float4(r,g,b,a);
 	}
-	alias toVector4 this;
 
 
 	enum Color transparent = Color(0);

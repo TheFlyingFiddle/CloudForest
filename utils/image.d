@@ -412,7 +412,6 @@ class PngLoader
 	void processScanLine() 
 	{
 		auto type = scanline0[0];
-		std.stdio.writeln(type);
 		if(type == 0) {
 		} else if(type == 1) {
 			convertSub();

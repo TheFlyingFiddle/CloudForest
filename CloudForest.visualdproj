@@ -189,6 +189,14 @@
   <filesToClean>*.obj;*.cmd;*.build;*.json;*.dep</filesToClean>
  </Config>
  <Folder name="CloudForest">
+  <Folder name="entity">
+   <File path="database.d" />
+   <File path="enitity.d" />
+   <File path="physicssystem.d" />
+   <File path="rendersystem.d" />
+   <File path="system.d" />
+   <File path="World.d" />
+  </Folder>
   <Folder name="examples">
    <File path="examples\all.d" />
    <File path="examples\blobEx.d" />
@@ -201,14 +209,6 @@
    <File path="examples\texturedEx.d" />
    <File path="examples\transfedEx.d" />
    <File path="examples\triangleExample.d" />
-  </Folder>
-  <Folder name="entity">
-   <File path="database.d" />
-   <File path="enitity.d" />
-   <File path="physicssystem.d" />
-   <File path="rendersystem.d" />
-   <File path="system.d" />
-   <File path="World.d" />
   </Folder>
   <Folder name="graphics">
    <File path="graphics\all.d" />
@@ -230,17 +230,22 @@
   <Folder name="math">
    <File path="math\helper.d" />
    <File path="math\matrix.d" />
+   <File path="math\rect.d" />
    <File path="math\vector.d" />
    <File path="math\vecutils.d" />
   </Folder>
   <Folder name="utils">
    <File path="utils\assertions.d" />
    <File path="utils\image.d" />
+   <File path="utils\string.d" />
   </Folder>
   <File path="font.d" />
   <File path="frame.d" />
   <File path="gui.d" />
+  <File path="input.d" />
   <File path="main.d" />
   <File path="SpriteBuffer.d" />
+  <File path="textureatlas.d" />
+  <File path="window.d" />
  </Folder>
 </DProject>

@@ -23,7 +23,7 @@ class SpriteBufferExample : Example
 	{
 		buffer = new SpriteBuffer(512, BufferHint.streamDraw);
 		
-		font = Font.load("resources/Metro.fnt");
+	//	font = Font.load("resources/Metro.fnt");
 		auto png = new PngLoader();
 		auto image = png.load("resources/PngTest.png");
 		auto texture = Texture2D.create(image,
@@ -32,8 +32,6 @@ class SpriteBufferExample : Example
 
 
 		frame = Frame(texture);
-
-		gl.viewport = uint4(0,0, 512,512);
 
 		Sampler sampler = new Sampler();
 		sampler.minFilter = TextureMinFilter.linear;
@@ -51,11 +49,11 @@ class SpriteBufferExample : Example
 		gl.enable(Capability.blend);
 		gl.blendState = BlendState.nonPremultiplied;
 
-		buffer.addText(font, "H", float2(200,200), Color.black,
-							float2.one, float2.zero, 1f);
+//		buffer.addText(font, "H", float2(200,200), Color.black,
+//							float2.one, float2.zero, 1f);
 
-		buffer.addFrame(Frame(font.page), float2.zero);
-		buffer.addFrame(frame, float2.zero);
+	//	buffer.addFrame(Frame(font.page), float2.zero);
+	//	buffer.addFrame(frame, float2.zero);
 		buffer.flush();
 
 		mat4 proj = mat4.CreateOrthographic(0, 512,512,0,1,-1);

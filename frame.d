@@ -6,9 +6,13 @@ import math.vector;
 struct Frame
 {
 	Texture2D texture;
+	float4 _srcRect;
 	float4 coords;
 
-	@property uint2 dim() const { return uint2(texture.width, texture.height); } 
+	@property float4 srcRect() const 
+	{
+		return _srcRect;
+	} 
 
 	this(Texture2D texture)
 	{
@@ -16,12 +20,13 @@ struct Frame
 		this.coords = float4(0,0,1,1);
 	}
 
-	this(Texture2D texture, float4 coords)
+	this(Texture2D texture, float4 srcRect)
 	{
 		this.texture = texture;
-		this.coords = float4(coords.x / texture.width,
-									coords.y / texture.height,
-									coords.z / texture.width,
-									coords.w / texture.height);
+		this._srcRect = srcRect;
+		this.coords = float4(srcRect.x / texture.width,
+									srcRect.y / texture.height,
+									(srcRect.x + srcRect.z) / texture.width,
+									(srcRect.y + srcRect.w) / texture.height);
 	}
 }
