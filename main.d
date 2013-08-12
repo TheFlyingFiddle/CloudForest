@@ -18,7 +18,9 @@ import core.sys.windows.windows;
 static this()
 {
 	if(!runModuleUnitTests())
-		readln();
+	{
+
+	}
 }
 
 void main(string[] argv)
@@ -34,16 +36,16 @@ void main(string[] argv)
 		gl.blendState = BlendState.nonPremultiplied;
 		gl.enable(Capability.multisample);
 
-		Example[] examples;// [ new TriangleExample()] ;
+		Example[] examples;
+		//examples ~= new TriangleExample();
 		//examples ~= new RectangleExample();
 		//examples ~= new NewtonExample();
 		//examples ~= new MandelbrotExample();
 		//examples ~= new BlobEx();
 		//examples ~= new TextureExample();
-	//	examples ~= new ParticleSystem();
-	 //	examples ~= new SpriteBufferExample();
+		//examples ~= new ParticleSystem();
+		//examples ~= new SpriteBufferExample();
 		examples ~= new GUIExample(window.mouseState, window.keyboardState, window.clipboard);
-
 
 		int activeExample = examples.length - 1;	
 		bool wasPressed = false;
@@ -63,7 +65,7 @@ void main(string[] argv)
 
 		window.run(WindowMode.pollEvents);
 
-
+		//window.close();
 		glfwTerminate();
 
 	} catch(Throwable e) {

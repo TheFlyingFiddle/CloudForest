@@ -55,12 +55,6 @@ class MouseEventState
 	}
 }
 
-unittest
-{
-	float4 a = float4(1,2,3,4);
-	auto b = a.yz;
-	b.x = 1000;
-}
 
 enum KeyModifier
 {

@@ -226,9 +226,10 @@ struct TextEditor
 		cursor.x  = selectedRange.y;
 	}
 
-
 	private bool editText(ref char[] text, KeyboardEventState keyInput, Clipboard clipboard)
 	{
+		cursor.x = clamp(cursor.x, 0u, text.count);
+
 		this.text = text;
 		bool changed = false;
 		if(hasText(keyInput)) 
@@ -260,6 +261,7 @@ struct TextEditor
 		else if(hasPaste(keyInput))
 		{
 			insert(clipboard.text);
+			changed = true;
 		} 
 
 		text = this.text;
@@ -268,7 +270,7 @@ struct TextEditor
 
 	private bool hasDelete(KeyboardEventState state, in char[] text)
 	{
-		if(state.wasPressed(Key.backspace) && cursor.x > 0) {
+		if(state.wasPressed(Key.backspace) && (cursor.x > 0 || hasSelection)) {
 			cursor.x--;
 			return true;
 		} 	else if(state.wasPressed(Key.delete_) && (text.count > cursor.x || hasSelection)) {
@@ -356,14 +358,15 @@ class GUI
 
 	TextEditor editor;
 
-	this(GUIStyle styles, MouseEventState mouseState, KeyboardEventState keyState, Clipboard clipboard, float4 bounds, SpriteBuffer buffer = null)
+	this(GUIStyle styles, MouseEventState mouseState, 
+		  KeyboardEventState keyState, Clipboard clipboard, 
+		  float4 bounds, SpriteBuffer buffer = null)
 	{
 		this.mouseState = mouseState;
-		this.keyState = keyState;
-		this.clipboard = clipboard;
-		this.bounds = bounds;
-
-		editor = TextEditor(null, uint2.zero, uint2.zero);
+		this.keyState   = keyState;
+		this.clipboard  = clipboard;
+		this.bounds		 = bounds;
+		this.editor     = TextEditor(null, uint2.zero, uint2.zero);
 
 		this.styles = styles;
 		if(buffer)	
@@ -382,19 +385,22 @@ class GUI
 		addText(style.font, text, rect, float4.zero, style.textColor);
 	}
 
-	bool button(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
+	bool button(float4 rect, const (char)[] text = null, 
+					Frame icon = Frame.init, ButtonStyle style = null)
 	{
 		handleButton(rect, text, icon, style);
 		return wasPressed(rect);
 	}
 
-	bool repeatButton(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
+	bool repeatButton(float4 rect, const (char)[] text = null, 
+							Frame icon = Frame.init, ButtonStyle style = null)
 	{
 		handleButton(rect, text, icon, style);
 		return isPressed(rect);
 	}
 
-	void handleButton(float4 rect, const (char)[] text = null, Frame icon = Frame.init, ButtonStyle style = null)
+	void handleButton(float4 rect, const (char)[] text = null, 
+							Frame icon = Frame.init, ButtonStyle style = null)
 	{
 		style = selectStyle(style, this.styles.button);
 
@@ -427,14 +433,112 @@ class GUI
 		auto pressed = wasPressed(rect);
 		isChecked	 = pressed ? !isChecked : isChecked;
 
-		auto buttonRect = rect.xyww;
+		float4 buttonRect = rect.xyww;
 		addFrame(TintedFrame(style.frame(isChecked), style.color), buttonRect);
 
 		if(text)
-			addText(style.font, text, rect + float4(buttonRect.z, 0,0,0), style.textPadding, style.textColor);
+			addText(style.font, text, rect + float4(buttonRect.z, 0,0,0), 
+					  style.textPadding, style.textColor);
 
 		handleFocus(rect);
 		return old != isChecked;
+	}
+
+
+	bool vector2Field(T)(float4 rect, ref Vector2!(T) vec, 
+							  TextfieldStyle style = null) if(isNumeric!T)
+	{
+		auto old = vec;
+		numberField!T(float4(rect.xy, rect.z / 2 - 3, rect.w), vec.x, style);
+		numberField!T(float4(rect.x + rect.z / 2 + 3, rect.y, rect.z / 2 - 3, rect.w), vec.y, style);
+		return old != vec;
+	}
+
+	bool vector3Field(T)(float4 rect, ref Vector3!(T) vec, 
+								TextfieldStyle style = null) if(isNumeric!T)
+	{
+		float space = rect.z / 15;
+
+		auto old = vec;
+		numberField!T(float4(rect.xy, rect.z / 3 - space / 3, rect.w), vec.x, style);
+		numberField!T(float4(rect.x + rect.z / 3 + space / 6, rect.y, (rect.z / 3) - space / 3 , rect.w), vec.y, style);
+		numberField!T(float4(rect.x + (rect.z / 3) * 2 + space / 3, rect.y, (rect.z / 3) - space / 3, rect.w), vec.z, style);
+		return old != vec;
+	}
+
+	bool vector4Field(T)(float4 rect, ref Vector4!(T) vec,
+								TextfieldStyle style = null)
+	{
+		auto old = vec;
+		numberField!T(float4(rect.xy, rect.z / 4 - 6, rect.w), vec.x, style);
+		numberField!T(float4(rect.x + rect.z / 4 + 2, rect.y, (rect.z / 4) - 6 , rect.w), vec.y, style);
+		numberField!T(float4(rect.x + (rect.z / 4) * 2 + 4, rect.y, (rect.z / 4) - 6, rect.w), vec.z, style);
+		numberField!T(float4(rect.x + (rect.z / 4) * 3 + 6, rect.y, (rect.z / 4) - 6, rect.w), vec.w, style);
+		return old != vec;
+	}
+
+	
+
+	char[] numberText;
+	int fIndex = 0;
+	bool numberField(T)(float4 rect, ref T number, TextfieldStyle style = null)
+	{
+		T old = number;
+		if(isFocused && fIndex != focus)
+		{
+			if(approxEqual(0, number)) {
+				numberText = new char[0];
+			} else {
+				numberText = to!(char[])(number);
+			}
+			fIndex = focus;
+			editor.selectedRange = uint2(0, numberText.length);
+		} 
+
+		if(!isFocused) {
+			char[] text = to!(char[])(number);
+			textField(rect, text, style);
+		} else {
+			uint oldLength = numberText.length;
+			if(textField(rect, numberText, style))
+			{
+				try {
+					number = to!T(numberText);
+				} catch(Exception e) {
+					adjustNumberString!T(numberText, oldLength);					
+					number = 0;
+				}
+			}
+		}
+
+		return old != number;
+	}
+
+	void adjustNumberString(T)(ref char[] numberText, uint oldLength)
+	{
+		if(numberText.length < oldLength)
+			return;
+
+		auto toRemove = numberText[oldLength .. $];
+		char prevChar = (numberText.length > 1) ? numberText[$ - toRemove.length - 1] : ' ';
+		static if(isFloatingPoint!T) {
+			if(toRemove == "e")
+			{
+				if(toRemove.length == numberText.length || prevChar == 'e' 
+					|| prevChar == '-' || prevChar == '+' ) {
+						numberText = numberText[0 .. oldLength];
+					}
+			} else if(toRemove == "-" || toRemove == "+") {
+				if(toRemove.length != numberText.length && prevChar != 'e') {
+					numberText = numberText[0 .. oldLength];
+				}
+			} else {
+				numberText = numberText[0 .. oldLength];
+			}					
+		} else {
+			if(toRemove != "-" || toRemove != "+") 
+				numberText = numberText[0 .. oldLength];
+		}
 	}
 
 	bool textField(float4 rect, ref char[] text, TextfieldStyle style = null)
@@ -446,7 +550,9 @@ class GUI
 
 		if(mouseDownIn(rect)) 
 		{
-			editor.select(style.font, text, mouseState.down[MouseButton.left].loc, mouseState.newLoc, rect.xy);
+			editor.select(style.font, text, 
+							  mouseState.down[MouseButton.left].loc, 
+							  mouseState.newLoc, rect.xy);
 			focus = numControl;
 		}
 
@@ -459,14 +565,15 @@ class GUI
 			addFrame(style.background, rect);
 			if(editor.hasSelection)
 			{
-				float start = style.font.messureString(text[0 .. text.toUTFindex(editor.selectedRange.x)]).x + rect.x + style.textPadding.x;
+				float start  = style.font.messureString(text[0 .. text.toUTFindex(editor.selectedRange.x)]).x + rect.x + style.textPadding.x;
 				float size   = style.font.messureString(text[text.toUTFindex(editor.selectedRange.x) .. text.toUTFindex(editor.selectedRange.y)]).x;
 
 				if(pos >= rect.z - style.textPadding.z)
 					start += rect.z - pos - style.textPadding.z;
 	
 						
-				addFrame(TintedFrame(style.cursor.frame, Color(0x3900FF00)), intersection(float4(start, rect.y, size, rect.y), float4(rect.xy + style.textPadding.xy, rect.zw - style.textPadding.xy - style.textPadding.zw))); 
+				addFrame(TintedFrame(style.cursor.frame, Color(0x3900FF00)), 
+							intersection(float4(start, rect.y, size, rect.y), shrink(rect, style.textPadding))); 
 			} 
 
 
@@ -728,8 +835,11 @@ class GUI
 				 rect.y < point.y && rect.y + rect.w > point.y;
 	}
 
-
-
+	private float4 shrink(float4 rect, float4 padding)
+	{
+		return float4(rect.xy + padding.xy, 
+						  rect.zw - padding.xy - padding.zw);
+	}
 
 	private float4 intersection(float4 rect0, float4 rect1)
 	{

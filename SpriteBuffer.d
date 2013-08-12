@@ -71,7 +71,7 @@ final class SpriteBuffer
 	}
 
 	
-	/*SpriteBuffer addFrame(Frame frame,
+	SpriteBuffer addFrame(Frame frame,
 								 float4 rect,
 								 Color color = Color.white,
 								 float2 origin = float2.zero,
@@ -94,7 +94,7 @@ final class SpriteBuffer
 
 		textures[elements++] = frame.texture;
 		return this;
-	}*/
+	}
 
 	SpriteBuffer addFrame(Frame frame,
 								 float4 rect,
@@ -125,7 +125,7 @@ final class SpriteBuffer
 		return this;
 	}
 
-	/*SpriteBuffer addFrame(Frame frame, 
+	SpriteBuffer addFrame(Frame frame, 
 								 float2 pos,
 								 Color color = Color.white,
 								 float2 scale = float2(1,1),
@@ -141,16 +141,16 @@ final class SpriteBuffer
 			swap(coords.x, coords.z);
 		}
 
-		float2 dim = float2(frame.dim.x * scale.x, frame.dim.x * scale.y);
+		float2 dim = float2(frame.srcRect.z * scale.x, frame.srcRect.w * scale.y);
 		vertices[elements] = Vertex(float4(pos.x, pos.y, dim.x, dim.y),
 													  coords,
 													  origin,
 													  color,
 													  rotation);
 
-		textures[elements++] = frame.t
+		textures[elements++] = frame.texture;
 		return this;
-	}*/
+	}
 
 	SpriteBuffer addText(T)(Font font,
 								const (T)[] text, 

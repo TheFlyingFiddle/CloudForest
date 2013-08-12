@@ -654,7 +654,6 @@ unittest
 	assertEquals(a, int4(11,13,3,4));
 
 	assertEquals(a, int4(11,13,3,4));//A should stay unmodified IMPOSSIBRU
-	readln();
 }
 void bla(int2 c)
 {

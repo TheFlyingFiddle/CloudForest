@@ -2,42 +2,109 @@ module math.rect;
 import math.vector;
 import std.math;
 
-alias float4 Rect;
 
-
-auto left(float4 vec) @property
+struct Rect
 {
-	return vec.x;
-}
+	enum Rect zero = Rect(0,0,0,0);
 
-auto right(float4 vec) @property
-{
-	return vec.x + vec.z;
-}
+	float x,y,w,h;
 
-auto bottom(float4 vec) @property
-{
-	return vec.y;
-}
+	this(float x, float y, float w, float h)
+	{
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+	}
 
-auto top(float4 vec) @property
-{
-	return vec.y + vec.w;
-}
+	this(float2 bottomLeft, float2 topRight)
+	{
+		this.x = bottomLeft.x;
+		this.y = bottomLeft.y;
+		this.w = topRight.x - bottomLeft.x;
+		this.h = topRight.y - bottomLeft.y;
+	}
 
-auto width(float4 vec) @property
-{
-	return vec.z;
-}
+	float left() const @property
+	{
+		return x;
+	}
 
-auto height(float4 vec) @property
-{
-	return vec.w;
-}
+	float right() const @property
+	{
+		return x + w;
+	}
 
+	float bottom() const @property
+	{
+		return y;
+	}
 
-bool pointInRect(float4 rect, float2 point)
-{
-	return rect.x < point.x && rect.x + rect.z > point.x &&
-			 rect.y < point.y && rect.y + rect.w > point.y;
+	float top() const @property
+	{
+		return y + h;
+	}
+
+	float2 topLeft() const @property
+	{
+		return float2(left, top);
+	}
+
+	float2 topRight() const @property
+	{
+		return float2(right, top);
+	}
+
+	float2 bottomLeft() const @property
+	{
+		return float2(left, bottom);
+	}
+
+	float2 bottomRight() const @property
+	{
+		return float2(right, bottom);
+	}
+
+	bool intersects(float2 point) 
+	{
+		return point.x > left   && point.x < right 
+			 && point.y > bottom && point.y < top;
+	}
+
+	static bool intersects(Rect a, Rect b)
+	{
+
+		return !(a.left   > b.right  ||
+					a.right  < b.left   ||
+					a.top    < b.bottom ||
+					a.bottom > b.top);
+
+	}
+
+	static Rect intersection(Rect a, Rect b)
+	{
+		float left    = fmax(a.left, b.left);
+		float bottom  = fmax(a.bottom, b.bottom);
+		float top	  = fmin(a.top, b.top);
+		float right	  = fmin(a.right, b.right);
+
+		if(top < bottom || right < left)
+			return Rect.zero;
+
+		return Rect(left, bottom, right - left, top - bottom);
+	}
+
+	void shrink(Rect other)
+	{
+		x += other.x;
+		y += other.y;
+		w -= other.x + other.w;
+		h -= other.y + other.h;
+	}
+
+	void displace(float2 pos)
+	{
+		x += pos.x;
+		y += pos.y;
+	}
 }

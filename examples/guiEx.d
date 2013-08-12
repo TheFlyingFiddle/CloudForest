@@ -18,7 +18,7 @@ class GUIExample : Example
 	this(MouseEventState mouseState, KeyboardEventState keyState, Clipboard clipboard) 
 	{
 		auto style = createGUIStyle();
-		gui = new GUI(style, mouseState, keyState, clipboard, float4(0,0,512,512));
+		gui = new GUI(style, mouseState, keyState, clipboard, float4(0,0,1280,720));
 	}
 
 	float f0 = 0;
@@ -27,12 +27,18 @@ class GUIExample : Example
 	bool t = false;
 
 	string[] tools = ["A", "MONKEY", "CAR", "IS", "BIG", "VERY", "BIG"];
-	string[] items = ["Item1", "Item2", "Item3", "Item4", "Item1", "Item2", "Item3", "Item4", "gerte3", "123415", "qweqweqwe", "Item4"];
+	string[] items = ["Item1", "Item2", "Item3", "Item4", "Item1", "Item2", 
+							"Item3", "Item4", "gerte3", "123415", "qweqweqwe", "Item4"];
 	uint selectedItem = 0;
 	char[] doodle;
 	string doodle1;
 	uint selected = 0;
 	float scrollOffset = 0;
+	double number  = 0;
+	ulong  number0 = 0;
+	float2 vec  = float2.zero;
+	float3 vec0 = float3.zero;
+	float4 vec1 = float4.zero;
 
 	override void reshape(int w, int h) { }
 	override void render(double time) 
@@ -74,6 +80,23 @@ class GUIExample : Example
 		if(gui.listbox(float4(400, 100, 100, 200), selectedItem, scrollOffset, items)) 
 			writeln("Selected item changed!", selectedItem, " ", items[selectedItem]);
 
+		if(gui.numberField(float4(100, 500, 200, 32), number)) 
+			writeln("Number changed! ",number); 		
+
+		if(gui.numberField(float4(100, 600, 200, 32), number0)) 
+			writeln("Number changed! ",number0); 		
+
+		if(gui.vector2Field(float4(600, 420, 300, 32), vec))
+			writeln("Vector changed!", vec);
+
+		if(gui.vector3Field(float4(600, 460, 300, 32), vec0)) 
+			writeln("Vector3 changed!", vec0);
+
+		if(gui.vector4Field(float4(600, 500, 300, 32), vec1))
+			writeln("Vector4 changed!", vec1);
+
+		if(gui.button(float4(600, 380, 300, 32), "Hello"))
+			writeln("Random button");
 
 		mat4 proj = mat4.CreateOrthographic(0, 1280,720,0,1,-1);
 		gui.draw(proj); 
@@ -130,10 +153,10 @@ class GUIExample : Example
 		label.textColor  = textColor;
 
 		auto listBox		  = new ListboxStyle();
-		listBox.background  = TintedFrame(uncheck, down);
-		listBox.stripe0	  = TintedFrame(uncheck, highlight);
-		listBox.stripe1	  = TintedFrame(uncheck, normal);
-		listBox.selected	  = TintedFrame(uncheck, Color(0xFFFFaaaa));
+		listBox.background  = TintedFrame(pixel, down);
+		listBox.stripe0	  = TintedFrame(pixel, highlight);
+		listBox.stripe1	  = TintedFrame(pixel, normal);
+		listBox.selected	  = TintedFrame(pixel, Color(0xFFFFaaaa));
 		listBox.slider		  = slider;
 		listBox.font		  = font;
 		listBox.textColor	  = textColor;

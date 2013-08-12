@@ -36,5 +36,4 @@ unittest
 {
 	auto db = new DataBase!(IBoundsComponent, ITransformationComponent)();
 	writeln(db);db.lol();
-	readln();
 }
