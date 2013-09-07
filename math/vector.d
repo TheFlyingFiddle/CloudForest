@@ -320,9 +320,8 @@ struct Vector3(T) if(isNumeric!T)
 	unittest
 	{
 		auto a = int3(1,2,3);
-		assertEquals(cast(int4)a.zxyz, int4(3,1,2,3));
-		assertEquals(cast(int3)a.rgr, int3(1,2,1));
-  writeln(cast(int4)a.zxyz);
+		assertEquals!int4(a.zxyz, int4(3,1,2,3));
+		assertEquals!int3(a.rgr, int3(1,2,1));
 	}
 
 	@property void opDispatch(string m, Vector)(Vector vec) if(validSwizzle!(m,3)()

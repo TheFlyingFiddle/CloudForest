@@ -1,28 +1,29 @@
 module entity.rendersystem;
 import entity.system;
+import entity.entity;
 
-alias IRenderComponent rc;
+alias RenderComponent rc;
 
-interface IRenderComponent:IComponent
+struct RenderComponent
 {
 	void draw();
 }
 
 class RenderSystem : ISystem
 {
-	private rc[] comps;
+	private Entity[] entities;
 
-	override void registerComponent(IComponent comp)
+	override void register(Entity entity)
 	{
-		if(is(comp:IRenderComponent))
-			comps ~= cast(rc)comp;
+		if(entity.hasComponent!(RenderComponent))
+			entities ~= entity;
 	}
 
 	override void process()
 	{
-		foreach(comp;comps)
+		foreach(entity;entities)
 		{
-			comp.draw();
+			entity.draw();
 		}
 	}
 }

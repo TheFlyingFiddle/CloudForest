@@ -1,7 +1,7 @@
 module entity.system;
 
-
-interface IComponent {}
+import entity.entity;
+import entity.database;
 
 interface ISystem
 {
@@ -10,5 +10,6 @@ interface ISystem
 	*	objects in this system
 	***********************************/
 	void process();
-	void registerComponent(IComponent comp);
+	bool tryRegister(Entity entity);
+	void register(Entity entity);
 }

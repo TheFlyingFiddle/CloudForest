@@ -3,84 +3,206 @@ module entity.physicssystem;
 import math.vector;
 import math.matrix;
 import entity.system;
+import entity.entity;
+import entity.database;
+import utils.assertions;
 import std.stdio;
 
-alias IVelocityComponent vc;
-alias ITransformationComponent tc;
-alias IBoundsComponent bc;
+alias VelocityComponent vc;
+alias TransformationComponent tc;
+alias BoundsComponent bc;
 
-interface IVelocityComponent:IComponent
+struct VelocityComponent
 {
-	@property float2 velocity();
-	@property void velocity(float2 newVel);
+	private float2 _velocity;
+	
+	@property float2 velocity()
+	{
+		return _velocity;
+	}
+
+	@property void velocity(float2 newVel)
+	{
+		_velocity = newVel;	
+	}
 }
 
-interface ITransformationComponent:IComponent
+struct TransformationComponent
 {
-	@property float2 position();
-	@property void position(float2);
-	@property float2 scale();
-	@property void scale(float2 newScale);
-	@property float rotation();
-	@property void rotation(float newRot);
-	@property mat3 matrix();
-	@property void matrix(mat3 newMat);
+	private float2 _position;
+	private float2 _scale;
+	private float _rotation;
+	private mat3 _matrix;
+	
+	@property float2 position() { return _position; }
+
+	@property void position(float2 newPos)
+	{
+		_matrix[0,2] = newPos.x;
+		_matrix[1,2] = newPos.y;
+		_position		= newPos;
+	}
+
+	@property float2 scale()
+	{
+		return _scale;
+	}
+	
+	@property void scale(float2 newScale)
+	{
+		_scale = newScale;
+		updateMatrix();
+	}
+	
+	@property float rotation()
+	{
+		return _rotation;
+	}
+	
+	@property void rotation(float newRot)
+	{
+		_rotation = newRot;
+		updateMatrix();
+	}
+	
+	@property mat3 matrix()
+	{
+		return _matrix;
+	}
+
+	private void updateMatrix()
+	{
+		this._matrix =	mat3.CreateMatrix(_position, _scale, _rotation);
+	}
 }
 
 class PositionUpdateSystem : ISystem
 {
-	interface VTC : tc,vc 
-	{}
-
-	private VTC[] comps;
-	override void registerComponent(IComponent comp) 
+	private struct EntityProxy
 	{
-		if(is(comp:IVelocityComponent) && is(comp:ITransformationComponent))
-			comps~=cast(VTC)comp;
+		TransformationComponent* transComp;
+		VelocityComponent* velComp;
+	}
+	private EntityProxy[] entities;
+	private IDataBase db;
+
+	this(IDataBase db)
+	{
+		this.db = db;
+	}
+	override void register(Entity entity)
+	{
+		if(entity.hasComponent!TransformationComponent,
+			entity.hasComponent!VelocityComponent)
+		{
+			entities ~= EntityProxy(db.GetComponentPointer!TransformationComponent,
+											db.GetComponentPointer!VelocityComponent);
+		}
 	}
 
 	override void process()
 	{
-		foreach(comp;comps)
+		foreach(entity;entities)
 		{
-			comp.position += comp.velocity;
+			entity.position += entity.velocity;
 		}
+	}
+}
+
+mixin template System(ComponentTypes...)
+{
+	private struct EntityProxy
+	{
+		mixin(buildComponentPointers(ComponentTypes));
+	}
+	private EntityProxy[] entities;
+	private IDataBase db;
+
+	this(IDataBase db)
+	{
+		this.db = db;
+	}
+
+	override void register(Entity entity)
+	{
+		mixin(buildRegister(ComponentTypes));
+	}
+
+	override void process()
+	{
+		foreach(entity;entities)
+		{
+			entity.position += entity.velocity;
+		}
+	}
+}
+
+private static string buildComponentPointers(ComponentTypes...)(ComonentTypes args)
+{
+	string s;
+	foreach(type;ComponentTypes)
+	{
+		s ~= text(fullyQualifiedName!type,"* ",CompSimpleName!type,";\n");
+	}
+	return s;
+}
+
+private static string buildRegister(ComponentTypes...)(ComonentTypes args)
+{
+	string s = "if(";
+	foreach(type;ComponentTypes)
+	{
+		s ~= text("entity.hasComponent!",fullyQualifiedName!type,"&&");
+	}
+	s = s[0..$-"&&".length];
+	s ~= "{
+				entities ~= EntityProxy(";
+	foreach(type;ComponentTypes)
+	{
+		s ~= "db.GetComponentPointer!"~fullyQualifiedName!type~",";
+	}
+	s = s[0..$-",".length];
+	s ~= ");}";
+	if(entity.hasComponent!TransformationComponent,
+		entity.hasComponent!VelocityComponent)
+	{
+		entities ~= EntityProxy(db.GetComponentPointer!TransformationComponent,
+										db.GetComponentPointer!VelocityComponent);
 	}
 }
 
 enum MAX_VERTICES = 16;
 
-/// Vertices are right-facing (counter-clockwise)
-interface IBoundsComponent
+/// Vertices are right-facing (counter-clockwise) TODO: How store circles usw?
+struct BoundsComponent
 {
-	@property float2[] vertices();
-	@property void vertices(float2[] newVerts);
+	private float2[] _vertices;
+
+	@property float2[] vertices()
+	{
+		return _vertices;
+	}
+	
+	@property void vertices(float2[] newVerts)
+	{
+		_vertices = newVerts;
+	}
 }
 
 class CollisionSystem : ISystem
 {
-	interface BTC : tc, bc
-	{}
-
-	private tc[] tComps;
-	private bc[] bComps;
-	private BTC[] comps;
-
-	override void registerComponent(IComponent comp)
+	Entity[] entities;
+	override void register(Entity entity)
 	{
-		if(is(comp : tc) && is(comp : bc))
+		//Does it have our required components?
+		if(entity.hasComponent!BoundsComponent &&
+			entity.hasComponent!TransformationComponent)
 		{
-			tComps ~= cast(tc) comp;
-			bComps ~= cast(bc) comp;
+			entities ~= entity;
 		}
-		else
-			writeln("fail");
-		writeln(comp, tComps,bComps);
-		writeln(is(comp:tc));
 	}
 
-
-
+	///TODO: Redo. Completely.
 	override void process()
 	{	
 		//Buffers
@@ -88,8 +210,8 @@ class CollisionSystem : ISystem
 		float2[MAX_VERTICES] aNormals;
 		float2[MAX_VERTICES] bWorldSpace;
 		float2[MAX_VERTICES] bNormals;
-		auto slice = comps;
-		foreach(i;0..comps.length)
+		auto slice = entities;
+		foreach(i;0..entities.length)
 		{
 			auto a = slice[i];
 			uint aLength = a.vertices.length;
@@ -97,7 +219,7 @@ class CollisionSystem : ISystem
 			loadWorldSpace(aLength, a, aWorldSpace[0..aLength]);
 			loadNormals(aLength, aNormals[0..aLength], aWorldSpace[0..aLength]);
 			
-			slice=slice[1..$];
+			slice = slice[1..$];
 			foreach(b;slice)
 			{
 				uint bLength = b.vertices.length;
@@ -108,6 +230,7 @@ class CollisionSystem : ISystem
 					loadNormals(bLength, bNormals[0..bLength], bWorldSpace[0..bLength]);
 					if(checkCollision(bNormals, aWorldSpace, bWorldSpace, aLength, bLength))
 					{
+						//Resolve the collision
 						writeln(a," ",b," JUST COLLIDED");
 					}
 				}
@@ -115,7 +238,7 @@ class CollisionSystem : ISystem
 		}
 	}
 
-	private static loadWorldSpace(uint aLength, BTC a, float2[] worldSpaceBuffer)
+	private static loadWorldSpace(uint aLength, Entity a, float2[] worldSpaceBuffer)
 	{
 		foreach(i;0..aLength)
 		{
@@ -173,7 +296,7 @@ class CollisionSystem : ISystem
 	
 	//Calculating normals again and again==waste?looool
 	///Detect collisions using the separating axis theorem
-	static private bool SET(BTC a, BTC b)
+	static private bool SET(Entity a, Entity b)
 	{
 		static float2[MAX_VERTICES] aWorldSpace;
 		static float2[MAX_VERTICES] bWorldSpace;
@@ -273,96 +396,45 @@ class CollisionSystem : ISystem
 
 	unittest
 	{
-		auto aTransform = mat3(1,0,2,
-									  0,1,2,
-									  0,0,1);
 		float2[] aVerts = [float2(1f,1f),float2(0f,1f),
-							 	 float2(0f,0f),float2(0f,1f)];
-
-		auto bTransform = mat3(1,0,9,
-									  0,1,9,
-									  0,0,1);
+							 		float2(0f,0f),float2(0f,1f)];
+		
 		float2[] bVerts = [float2(1f,1f),float2(0f,1f),
 									float2(0f,0f),float2(0f,1f)];
-		auto a = new class BTC {
-			@property float2 position(){return float2.init;}
-			@property void position(float2){}
-			@property float2 scale(){return float2.init;}
-			@property void scale(float2 newScale){}
-			@property float rotation(){return float.init;}
-			@property void rotation(float newRot){}
-			@property mat3 matrix(){return aTransform;}
-			@property void matrix(mat3 newMat){}
 
-			@property float2[] vertices(){return aVerts;}
-			@property void vertices(float2[] newVerts){}
-		};
+		float2[] cVerts = [float2(1f,1f),float2(0f,1f),
+									float2(0f,0f),float2(0f,1f)];
 
-		auto b = new class BTC {
-			@property float2 position(){return float2.init;}
-			@property void position(float2){}
-			@property float2 scale(){return float2.init;}
-			@property void scale(float2 newScale){}
-			@property float rotation(){return float.init;}
-			@property void rotation(float newRot){}
-			@property mat3 matrix(){return bTransform;}
-			@property void matrix(mat3 newMat){}
+		float2[] dVerts = [float2(1f,1f),float2(0f,1f),
+									float2(0f,0f),float2(0f,1f)];
 
-			@property float2[] vertices(){return bVerts;}
-			@property void vertices(float2[] newVerts){}
-		};
 
-		aTransform = mat3(1,0,-4,
-								0,1,-2,
-								0,0,1);
-		aVerts = [float2(1f,1f),float2(0f,1f),
-		float2(0f,0f),float2(0f,1f)];
+		auto db = new DataBase!(BoundsComponent, TransformationComponent)();
+		auto a = new Entity!(TransformationComponent, BoundsComponent)(db);
+		auto b = new Entity!(TransformationComponent, BoundsComponent)(db);
+		auto c = new Entity!(TransformationComponent, BoundsComponent)(db);
+		auto d = new Entity!(TransformationComponent, BoundsComponent)(db);
 
-		bTransform = mat3(1,0,-3,
-									  0,1,-3,
-									  0,0,1);
-		bVerts = [float2(1f,1f),float2(0f,1f),
-		float2(0f,0f),float2(0f,1f)];
-		auto v = new class BTC {
-			@property float2 position(){return float2.init;}
-			@property void position(float2){}
-			@property float2 scale(){return float2.init;}
-			@property void scale(float2 newScale){}
-			@property float rotation(){return float.init;}
-			@property void rotation(float newRot){}
-			@property mat3 matrix(){return aTransform;}
-			@property void matrix(mat3 newMat){}
+		a.vertices = aVerts;
+		b.vertices = bVerts;
+		c.vertices = cVerts;
+		d.vertices = dVerts;
 
-			@property float2[] vertices(){return aVerts;}
-			@property void vertices(float2[] newVerts){}
-		};
+		a.position = float2(1,10);
+		b.position = float2(1.5,10);
 
-		auto u = new ASDF;
-		auto pS = new CollisionSystem;
-		pS.registerComponent(u);
-		pS.registerComponent(v);
-		pS.registerComponent(a);
-		pS.registerComponent(b);
-		pS.process();
+		auto cS = new CollisionSystem;
+		cS.register(a);
+		cS.register(b);
+		cS.register(c);
+		cS.register(d);
+		cS.process();
 		writeln("done");	
+		
+		auto e = new Entity!(TransformationComponent, BoundsComponent)(db);
+		e.position = float2(2,3);
+		assertEquals(e.position, float2(2,3));
+		writeln("SUCCESS");
+		readln();
 	}
-
-	interface vBTC : bc, tc {}
-
-
-}
-
-class ASDF : tc, bc
-{
-	@property float2 position(){return float2.init;}
-	@property void position(float2){}
-	@property float2 scale(){return float2.init;}
-	@property void scale(float2 newScale){}
-	@property float rotation(){return float.init;}
-	@property void rotation(float newRot){}
-	@property mat3 matrix(){return mat3.identity;}
-	@property void matrix(mat3 newMat){}
-
-	@property float2[] vertices(){return [float2.init];}
-	@property void vertices(float2[] newVerts){}
 }

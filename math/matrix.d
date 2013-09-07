@@ -442,6 +442,8 @@ struct Matrix3
 		assertEquals(CreateScale(x,y,z), mat);
 	}
 
+
+
 	///Needs to be tested: Integration style
 	public static Matrix4 CreateOrthographic(float viewWidth, float viewHeight,
 														  float x, float y, float z,
@@ -453,6 +455,14 @@ struct Matrix3
 							0, -2 / yMax, 0 , 1,
 							0, 0, 2 / (zFar - zNear),(zNear + zFar) / (zNear - zFar),
 							0, 0, 0, 1);
+	}
+
+
+	static mat3 CreateMatrix(float2 position, float2 scale, float rotation)
+	{
+		return mat3(	cos(rotation)*scale.x,-sin(rotation)*scale.y, position.x,
+							sin(rotation)*scale.x, cos(rotation)*scale.y, position.y,
+							0,								0,								1);
 	}
 }
 
