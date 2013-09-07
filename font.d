@@ -64,19 +64,19 @@ class Font
 		this.unkownChar = chars[unkownCharValue];
 	}
 
-	CharInfo opIndex(wchar c) 
+	CharInfo opIndex(dchar c) 
 	{
 		if(cast(uint)c < chars.length && chars[c] !is null)
 			return chars[c];
 		return unkownChar;
 	}
 
-	float2 messureString(T)(const (T)[] toMessure)
+	float2 messure(T)(const (T)[] toMessure)
 		if(is(T == char) || is(T == wchar) || is(T == dchar))
 	{
 		float2 cursor = float2(0,0);
 
-		foreach(wchar c; toMessure)
+		foreach(dchar c; toMessure)
 		{
 			if(c == '\r') continue;
 

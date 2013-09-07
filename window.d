@@ -73,7 +73,6 @@ extern (C) void mouseCursorPosCallback(GLFWwindow* glfwWindow, double x, double 
 {
 	auto window = windows[glfwWindow];
 	auto state = window.mouseState;
-	state.oldLoc = state.newLoc;
 	state.newLoc = float2(x, window.height - y);
 }
 
@@ -116,7 +115,6 @@ extern (C) void keyCallback(GLFWwindow* glfwWindow, int key, int scancode, int a
 	}
 } 
 
-
 final class Clipboard
 {
 	Window owner;
@@ -136,7 +134,6 @@ final class Clipboard
 		glfwSetClipboardString(owner._glfwWindow, value.toStringz);
 	}
 }
-
 
 final class Window
 {

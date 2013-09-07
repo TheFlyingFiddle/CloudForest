@@ -14,6 +14,7 @@ import math.matrix;
 import std.algorithm;
 import frame;
 import font;
+import math.rect;
 
 final class SpriteBuffer 
 {
@@ -72,7 +73,7 @@ final class SpriteBuffer
 
 	
 	SpriteBuffer addFrame(Frame frame,
-								 float4 rect,
+								 Rect rect,
 								 Color color = Color.white,
 								 float2 origin = float2.zero,
 								 float rotation = 0,
@@ -86,7 +87,7 @@ final class SpriteBuffer
 			swap(coords.x, coords.z);
 		}
 
-		vertices[elements] = Vertex(rect,
+		vertices[elements] = Vertex(cast(float4)rect,
 											 coords,
 											 origin,
 											 color,
@@ -97,8 +98,8 @@ final class SpriteBuffer
 	}
 
 	SpriteBuffer addFrame(Frame frame,
-								 float4 rect,
-								 float4 bounds,
+								 Rect rect,
+								 Rect bounds,
 								 Color color = Color.white,
 								 float2 origin = float2.zero,
 								 float rotation = 0,
@@ -114,7 +115,7 @@ final class SpriteBuffer
 
 		
 		if(clampPosAndCoords(bounds, rect, coords)) {
-			vertices[elements] = Vertex(rect,
+			vertices[elements] = Vertex(cast(float4)rect,
 												 coords,
 												 origin,
 												 color,
@@ -166,7 +167,7 @@ final class SpriteBuffer
 		textures[elements .. elements + text.length] = font.page;
 		
 		float2 cursor = float2(0,0);
-		foreach(wchar c; text)
+		foreach(dchar c; text)
 		{
 			auto cc = cursor;
 			if(c == ' ') {
@@ -204,11 +205,11 @@ final class SpriteBuffer
 	SpriteBuffer addText(T)(Font font,
 								const (T)[] text, 
 								float2 pos,
-								float4 scissor,
+								Rect scissor,
 								Color color = Color.white) if(is(T == char) || is(T == wchar) || is(T == dchar))
 	{
 		float2 cursor = float2(0,0);
-		foreach(wchar c; text)
+		foreach(dchar c; text)
 		{
 			auto cc = cursor;
 			if(c == ' ') {
@@ -226,7 +227,7 @@ final class SpriteBuffer
 			}
 
 			CharInfo info = font[c];
-			float4 ppos = float4(pos.x + info.offset.x + cursor.x,
+			Rect ppos = Rect(pos.x + info.offset.x + cursor.x,
 									   pos.y + info.offset.y + cursor.y,
 									   info.srcRect.z, 
 									   info.srcRect.w);
@@ -236,11 +237,11 @@ final class SpriteBuffer
 			
 		
 			if(clampPosAndCoords(scissor, ppos, coords)) {
-				vertices[elements] = Vertex(ppos, 
-														coords,
-														float2.zero,
-														color,
-														0);
+				vertices[elements] = Vertex(cast(float4)ppos, 
+													coords,
+													float2.zero,
+													color,
+													0);
 
 				textures[elements++] = font.page;
 			}
@@ -249,47 +250,47 @@ final class SpriteBuffer
 	}
 
 
-	private bool clampPosAndCoords(float4 bounds, ref float4 pos, ref float4 coords)
+	private bool clampPosAndCoords(ref Rect bounds, ref Rect pos, ref float4 coords)
 	{
-		if(bounds.x + bounds.z < pos.x || bounds.y + bounds.w < pos.y
-		|| pos.x + pos.z < bounds.x || pos.y + pos.w < bounds.y)
+		if(bounds.x + bounds.w < pos.x || bounds.y + bounds.h < pos.y
+		|| pos.x + pos.w < bounds.x || pos.y + pos.h < bounds.y)
 			return false;
 
-		if(bounds.x + bounds.z < pos.x + pos.z) 
+		if(bounds.x + bounds.w < pos.x + pos.w) 
 		{
-			float old = pos.z;
-			pos.z = (bounds.x + bounds.z) - pos.x;
-			coords.z = (coords.z - coords.x) * (pos.z / old) + coords.x;
+			float old = pos.w;
+			pos.w = (bounds.x + bounds.w) - pos.x;
+			coords.z = (coords.z - coords.x) * (pos.w / old) + coords.x;
 		} 
 
 		if(bounds.x > pos.x) 
 		{
-			float old = pos.z;
-			pos.z -= bounds.x - pos.x;
+			float old = pos.w;
+			pos.w -= bounds.x - pos.x;
 			pos.x  = bounds.x;
 
-			float s = (old - pos.z) / old; 
+			float s = (old - pos.w) / old; 
 			coords.x += (coords.z - coords.x) * s;
 		}
 
-		if(bounds.y + bounds.w < pos.y + pos.w) 
+		if(bounds.y + bounds.h < pos.y + pos.h) 
 		{
-			float old = pos.w;
-			pos.w =    (bounds.y + bounds.w) - pos.y;
-			coords.w = (coords.w - coords.y) * (pos.w / old) + coords.y;
+			float old = pos.h;
+			pos.h =    (bounds.y + bounds.h) - pos.y;
+			coords.w = (coords.w - coords.y) * (pos.h / old) + coords.y;
 		} 
 
 		if(bounds.y > pos.y) 
 		{
-			double old = pos.w;
-			pos.w -= bounds.y - pos.y;
+			double old = pos.h;
+			pos.h -= bounds.y - pos.y;
 			pos.y  = bounds.y;
 
-			double s = (old - pos.w) / old; 
+			double s = (old - pos.h) / old; 
 			coords.y += (coords.w - coords.y) * s;
 		}
 
-		return pos.w > 0 && pos.z > 0;
+		return true;
 	}
 
 

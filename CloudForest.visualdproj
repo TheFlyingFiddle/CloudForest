@@ -210,6 +210,13 @@
    <File path="examples\transfedEx.d" />
    <File path="examples\triangleExample.d" />
   </Folder>
+  <Folder name="ui">
+   <File path="button.d" />
+   <File path="common.d" />
+   <File path="gui.d" />
+   <File path="pannel.d" />
+   <File path="renderer.d" />
+  </Folder>
   <Folder name="graphics">
    <File path="graphics\all.d" />
    <File path="graphics\buffer.d" />
@@ -236,12 +243,13 @@
   </Folder>
   <Folder name="utils">
    <File path="utils\assertions.d" />
+   <File path="utils\examples.d" />
    <File path="utils\image.d" />
-   <File path="utils\string.d" />
+   <File path="utils\message.d" />
+   <File path="utils\pipeline.d" />
   </Folder>
   <File path="font.d" />
   <File path="frame.d" />
-  <File path="gui.d" />
   <File path="input.d" />
   <File path="main.d" />
   <File path="SpriteBuffer.d" />

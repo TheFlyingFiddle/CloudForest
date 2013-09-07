@@ -94,6 +94,12 @@ struct Rect
 		return Rect(left, bottom, right - left, top - bottom);
 	}
 
+	static Rect shrink(Rect a, Rect b)
+	{
+		a.shrink(b);
+		return a;
+	}
+
 	void shrink(Rect other)
 	{
 		x += other.x;

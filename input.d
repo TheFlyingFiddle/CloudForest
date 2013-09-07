@@ -32,6 +32,9 @@ class MouseEventState
 	{
 		scrollDelta = float2.zero;
 		changed[] = false;
+
+		oldLoc = newLoc;
+		scrollDelta = float2.zero;
 	}
 
 	bool wasReleased(MouseButton button) 
@@ -71,7 +74,7 @@ enum KeyModifier
 
 class KeyboardEventState 
 {
-	string					  charInput;
+	dstring					  charInput;
 	KeyModifier				  modifier;
 	KeyState[Key.max + 1]  keys;
 	bool[Key.max + 1]		  changed;
