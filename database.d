@@ -1,168 +1,110 @@
 module entity.database;
 
-
-import std.conv;
-import std.stdio;
-import std.range;
-import std.traits;
-import std.algorithm;
-import std.string;
-import math.mathutils;
-import utils.strings;
-import utils.assertions;
-import entity.system;
-import entity.physicssystem;
-import entity.entity;
-
-interface IDataBase
+private string createArrays(T...)()
 {
-	T* alloc(T)(T comp = T.init);
+	string s;
+	foreach(t; T) 
+		s ~= t.stringof ~ "[] _" ~ array!t ~ ";\n";
+	return s;
 }
 
-template allImplements(iFace, Types...)
+template array(T)
 {
-	static if (Types.length == 0)
-	{
-		enum allImplements = true;
-	}
-	else static if (is(Types[0]:iFace))
-	{
-		enum allImplements = allImplements!(iFace, Types[1..$]);
-	}
-	else
-	{
-		enum allImplements = false;
-	}
+	enum array = "_" ~ T.stringof ~ "Array";
 }
 
-class DataBase(ComponentTypes...) : IDataBase
+class Database(T...)
 {
-	mixin(buildComponentArrays!(ComponentTypes)());
-	mixin(buildComponentMapTemplate!(ComponentTypes)());
-	mixin(buildOpIndex!(ComponentTypes)());
+	mixin(createArrays!T);
+	bool[] free;
 	
-
-	///Builds a template which more or less is a compile-time map from simple names to types. Ex: position => IPositionComponent
-	private static string buildComponentMapTemplate(Types...)()
+	this(size_t size) 
 	{
-		string templateCode = 
-			"public template ComponentType(string name)
-			{";
-		foreach(type;Types)
-		{
-			templateCode ~= text(
-				"static if (name == ",CompSimpleName!type,")
-				{
-					enum ComponentType = ", type,";
-				} 
-				else ");
-		}
-		templateCode ~= 
-					"{ static assert(false, \"No component type registered for name \"~name); }
-			}";
-		return templateCode;
+		initArrays(size);
 	}
 
-	///Builds a template which more or less is a compile-time map from simple names to types. Ex: position => IPositionComponent
-	private static string buildComponentMapTemplate(Types...)()
+	void initArrays(size_t size)
 	{
-		string templateCode = 
-			"public template TypeIndex(T)
-			{";
-		foreach(i,type;Types)
-		{
-			templateCode ~= text(
-				"static if (is(T == ",type,")
-				{
-					enum TypeIndex = ", i,";
-				}
-				else ");
-		}
-		templateCode ~= 
-					"{ static assert(false, \"No component type registered for name \"~name); }
-			}";
-		return templateCode;
-	}
-
-	private static string buildComponentArrays(Types...)()
-	{
-		string toReturn = "";
-		foreach(type;Types)
-		{
-			auto name = fullyQualifiedName!type;
-			toReturn ~= text(name,"[] ",CompSimpleName!(type)~"Comps",";");
-		}
-		return toReturn;
-	}	
-
-
-	private static string buildOpDispatch(Types...)()
-	{
-		string templateCode = "private auto opDispatch(string m)(uint index)
-			{";
-		foreach(i,type;Types)
-		{
-			templateCode ~= text(
-				"if (index == ",i,")
-				{
-					return ", arrayName!type,";
-				} 
-				else ");
-		}
-		templateCode ~= text(
-			"{assert(false, text(\"Component type index out of bounds: \",index,
-													\"\n Max index was: \", ",Types.length,"));}
-			}");
-		return templateCode;
-	}
-
-	private template arrayName(T)
-	{
-		enum arrayName = CompSimpleName!T ~ "Comps";
-	}
-
-	T* alloc(T)(T comp = T.init)
-	{
-		mixin(text(arrayName!T," ~= comp;\n",
-					  "return &",arrayName!T,"[$];"));
-	}
-
-	auto getComponentPointer()(Component comp)
-	{
-		return &(this[comp.type][comp.index]);
-	}
-
-	T* getPropertyPointer(ComponentType)(int index)
-	{
-		return mixin(text("this.",CompSimpleName!ComponentType,"[",index,"]"));
-	}
-
-	public template TypeId(T)
-		if (staticIndexOf(T, ComponentTypes)>=0)
-	{
+		free.length = size;
+		free[] = true;
+		foreach(t; T)  
+			mixin(array!t ~ ".length = size;");
 		
+		foreach(i; 0 .. size)
+			setToDefault(i);
+	}
+
+	U[] items(U)()
+	{
+		mixin("return " ~ array!U ~ ";");
+	}
+
+	void add(U...)(U u)
+	{
+		size_t index = freeIndex();
+		foreach(i, t;U) 
+			mixin(array!t ~ "[index] = u[i];");
+	}
+
+	size_t freeIndex()
+	{
+		foreach(i, f; free) if(f) return i;
+		throw new Exception();
+	}
+	
+	void remove(size_t index)
+	{
+		free[index] = true;
+		setToDefault(index);
+	}
+
+	void setToDefault(size_t index)
+	{
+		foreach(t;T) 
+			mixin(array!t ~ "[index] = "~ t.stringof ~ ".default;");
+	}	
+}
+
+template isDatabase(T)
+{
+	static if(is(T t == Database!U, U...))
+		enum isDatabase = true;
+	else
+		enum isDatabase = false;
+}
+
+class PosSystem(T) if(isDatabase!T) : ISystem 
+{
+	Position[] pos;
+	Velocity[] velo;
+	Acceleration[] acc;
+
+	this(T database) 
+	{
+		pos   = database.items!Position;
+		velo  = database.items!Velocity;
+		acc	= database.items!Acceleration; 
+	}
+
+	void process()
+	{
+		velo[] += acc[];
+		pos[]  += velo[];
 	}
 }
 
-unittest
+
+struct Position
 {
-	auto db = new DataBase!(BoundsComponent, TransformationComponent)();
-	auto bPtr = db.alloc!BoundsComponent();
-	assertEquals(*bPtr, BoundsComponent.init);
-	readln();
+	float2 data;
 }
 
-///Gets a simple name for any component. Ex: IPositionComponent => position
-public template CompSimpleName(Type)
+struct Velocity
 {
-	enum fullName = Type.stringof;
-	enum CompSimpleName = unCapitalize!(fullName
-													[0..$-"Component".length] //Remove "Component" from the end
-													);
+	float2 data;
 }
 
-unittest
+struct Acceleration
 {
-	struct TestComponent { }
-	assertEquals(CompSimpleName!TestComponent, "test");
+	float2 data; 
 }
