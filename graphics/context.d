@@ -951,7 +951,7 @@ struct Context
 	{
 		if(_drawBuffers != drawBuffers) {
 			_drawBuffers = drawBuffers.dup;
-			glDrawBuffers(drawBuffers.length, cast(uint*)drawBuffers.ptr);
+			glDrawBuffers(cast(int)drawBuffers.length, cast(uint*)drawBuffers.ptr);
 		}
 	}
 
@@ -1033,7 +1033,7 @@ struct Context
 		out { assertNoGLError(); }
 	body
 	{
-		glMultiDrawArrays(type, first.ptr, count.ptr, first.length);
+		glMultiDrawArrays(type, first.ptr, count.ptr, cast(int)first.length);
 	}
 
 	static void drawElements(T)(PrimitiveType type, uint offset, uint count) 

@@ -488,17 +488,17 @@ class GUI
 				else 
 					t = t[0 .. textCursor.x] ~ t[textCursor.x + 1 .. $];
 
-				textCursor.x = clamp!int(textCursor.x - 1, 0, t.length);
+				textCursor.x = clamp!int(textCursor.x - 1, 0, cast(int)t.length);
 			}
 
 			if(keyState.wasPressed(Key.left)) 
 			{
-				textCursor.x = clamp!int(textCursor.x - 1, 0, t.length);
+				textCursor.x = clamp!int(textCursor.x - 1, 0, cast(int)t.length);
 			} 
 
 			if(keyState.wasPressed(Key.right)) 
 			{
-				textCursor.x = clamp!int(textCursor.x + 1, 0, t.length);
+				textCursor.x = clamp!int(textCursor.x + 1, 0, cast(int)t.length);
 			} 
 		}
 
@@ -548,7 +548,7 @@ class GUI
 	uint messureUntil(Font font, string toMessure, float maxWidth)
 	{
 		float2 cursor = float2.zero;
-		foreach(i, wchar c; toMessure) 
+		foreach(uint i, wchar c; toMessure) 
 		{
 
 			auto cc = cursor;
@@ -573,7 +573,7 @@ class GUI
 				return i; 
 		}
 
-		return toMessure.length;
+		return cast(int)toMessure.length;
 	}
 
 
@@ -582,7 +582,7 @@ class GUI
 		style = (style) ? style : this.style.toolbar;
 		uint spacing = 4;
 		uint outSel = -1;
-		foreach(i, tool;tools)
+		foreach(uint i, tool;tools)
 		{
 			ButtonStateStyle state;
 			if(i == selected) {

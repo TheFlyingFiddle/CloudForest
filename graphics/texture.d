@@ -280,12 +280,12 @@ final class Texture2DArray : Texture
 		out { assertNoGLError(); } 
 	body
 	{
-		auto texture = new Texture2DArray(Texture.create(), width, height, data.length);
+		auto texture = new Texture2DArray(Texture.create(), width, height, cast(uint)data.length);
 
 		Context.textures[0] = texture;
 
-		glTexImage3D(texture.target, 0, internalFormat, width, height, data.length, 0, format, type, null);
-		foreach(depth, layer; data) {
+		glTexImage3D(texture.target, 0, internalFormat, width, height, cast(int)data.length, 0, format, type, null);
+		foreach(int depth, layer; data) {
 			glTexImage3D(texture.target, 0, internalFormat, width, height, depth, 0, format, type, layer.ptr);
 		}
 

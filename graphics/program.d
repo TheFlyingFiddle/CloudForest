@@ -164,7 +164,7 @@ final class Program
 			v ~= s.toStringz();
 		}
 
-		glTransformFeedbackVaryings(glName, varyings.length, cast(char**)v.ptr, mode);
+		glTransformFeedbackVaryings(glName, cast(int)varyings.length, cast(char**)v.ptr, mode);
 	}
 
 
@@ -469,7 +469,7 @@ final class Program
 
 	private void flushUniform(int loc,  int[] value) 
 	{
-		glUniform1iv(loc, value.length, cast(int*)value.ptr);
+		glUniform1iv(loc, cast(int)value.length, cast(int*)value.ptr);
 	}
 
 	private void flushUniform(int loc,  int2 value) 
@@ -479,7 +479,7 @@ final class Program
 	
 	private void flushUniform(int loc, int2[] value) 
 	{
-		glUniform2iv(loc, value.length, cast(int*)value.ptr);
+		glUniform2iv(loc, cast(int)value.length, cast(int*)value.ptr);
 	}
 
 	private void flushUniform(int loc, int3 value)
@@ -489,7 +489,7 @@ final class Program
 
 	private void flushUniform(int loc, int3[] value) 
 	{
-		glUniform3iv(loc, value.length, cast(int*)value.ptr);
+		glUniform3iv(loc, cast(int)value.length, cast(int*)value.ptr);
 	}
 
 	private void flushUniform(int loc, int4 value) 
@@ -499,7 +499,7 @@ final class Program
 
 	private void flushUniform(int loc, int4[] value)
 	{
-		glUniform4iv(loc, value.length, cast(int*)value.ptr);
+		glUniform4iv(loc, cast(int)value.length, cast(int*)value.ptr);
 	}
 
 	private void flushUniform(int loc, uint value)
@@ -509,7 +509,7 @@ final class Program
 
 	private void flushUniform(int loc, uint[] value) 
 	{
-		glUniform1uiv(loc, value.length, cast(uint*)value.ptr);
+		glUniform1uiv(loc, cast(int)value.length, cast(uint*)value.ptr);
 	}
 
 	private void flushUniform(int loc, uint2 value)
@@ -519,7 +519,7 @@ final class Program
 
 	private void flushUniform(int loc, uint2[] value)
 	{
-		glUniform2uiv(loc, value.length, cast(uint*)value.ptr);
+		glUniform2uiv(loc, cast(int)value.length, cast(uint*)value.ptr);
 	}
 
 	private void flushUniform(int loc, uint3 value)
@@ -529,7 +529,7 @@ final class Program
 
 	private void flushUniform(int loc, uint3[] value)
 	{
-		glUniform3uiv(loc, value.length, cast(uint*)value.ptr);
+		glUniform3uiv(loc, cast(int)value.length, cast(uint*)value.ptr);
 	}
 
 	private void flushUniform(int loc, uint4 value)
@@ -539,7 +539,7 @@ final class Program
 
 	private void flushUniform(int loc, uint4[] value)
 	{
-		glUniform4uiv(loc, value.length, cast(uint*)value.ptr);
+		glUniform4uiv(loc, cast(int)value.length, cast(uint*)value.ptr);
 	}
 
 	private void flushUniform(int loc, float value)
@@ -549,7 +549,7 @@ final class Program
 	
 	private void flushUniform(int loc, float[] value)
 	{
-		glUniform1fv(loc, value.length, cast(float*)value.ptr);
+		glUniform1fv(loc, cast(int)value.length, cast(float*)value.ptr);
 	}
 	
 	private void flushUniform(int loc, float2 value)
@@ -559,7 +559,7 @@ final class Program
 
 	private void flushUniform(int loc, float2[] value)
 	{
-		glUniform2fv(loc, value.length, cast(float*)value.ptr);
+		glUniform2fv(loc, cast(int)value.length, cast(float*)value.ptr);
 	}
 	
 	private void flushUniform(int loc, float3 value)
@@ -569,7 +569,7 @@ final class Program
 
 	private void flushUniform(int loc, float3[] value)
 	{
-		glUniform3fv(loc, value.length, cast(float*)value.ptr);
+		glUniform3fv(loc, cast(int)value.length, cast(float*)value.ptr);
 	}
 	
 	private void flushUniform(int loc, float4 value)
@@ -579,7 +579,7 @@ final class Program
 
 	private void flushUniform(int loc, float4[] value)
 	{
-		glUniform4fv(loc, value.length, cast(float*)value.ptr);
+		glUniform4fv(loc, cast(int)value.length, cast(float*)value.ptr);
 	}
 
 	private void flushUniform(int loc, in mat4 matrix)

@@ -388,7 +388,7 @@ class PngLoader
 
 	void processData(ubyte[] data) 
 	{	
-		uint index, nIndex;
+		size_t index, nIndex;
 		
 		if(scanline0.length > 0) {
 			nIndex = index + scanLineSize - scanline0.length;			

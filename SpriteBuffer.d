@@ -47,7 +47,7 @@ final class SpriteBuffer
 		elements  = 0;
 
 		gl.vbo = vbo;
-		vbo.initialize(size * Vertex.sizeof);
+		vbo.initialize(size * cast(uint)Vertex.sizeof);
 
 
 		if(program is null) {

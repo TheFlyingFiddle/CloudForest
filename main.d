@@ -45,7 +45,7 @@ void main(string[] argv)
 		examples ~= new GUIExample(mouseState, keyState);
 
 
-		int activeExample = examples.length - 1;	
+		auto activeExample = examples.length - 1;	
 		bool wasPressed = false;
 		while(!glfwWindowShouldClose(window)
 				&& glfwGetKey(window, GLFW_KEY_ESC) != GLFW_PRESS) 

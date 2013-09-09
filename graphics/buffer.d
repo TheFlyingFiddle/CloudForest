@@ -67,7 +67,7 @@ class Buffer
 		out { assertNoGLError(); }
 	body
 	{
-		buffer._size = T.sizeof * data.length;
+		buffer._size = cast(uint)T.sizeof * cast(uint)data.length;
 		glBufferData(buffer.target, buffer.size, data.ptr, buffer.hint);
 	}
 

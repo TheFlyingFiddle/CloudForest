@@ -190,6 +190,11 @@ struct Vector2(T) if(isNumeric!T)
 		a.rg = a.xx;
 		assertEquals(a, int2(6,6));
 	}
+
+	string toString()
+	{
+		return text("(",this.x,",",this.y,")");
+	}
 }
 
 struct Vector3(T) if(isNumeric!T)

@@ -96,7 +96,7 @@ final class Shader
 
 	package void source(const(char)[] source) @property
 	{
-		int length = source.length;
+		int length = cast(int)source.length;
 		auto c_source = cast(char*)source.ptr;
 		glShaderSource(glName, 1, &c_source, &length);
 	}
